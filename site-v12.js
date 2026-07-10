@@ -1,0 +1,57 @@
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const portraitImage=$('#portraitImage');
+if(window.PAOPAO_PORTRAIT){portraitImage.src=window.PAOPAO_PORTRAIT}else{portraitImage.alt='写真データを読み込めませんでした';}
+document.body.classList.add('motion');
+
+const pointer={x:innerWidth*.7,y:innerHeight*.35,dx:0,dy:0};
+addEventListener('pointermove',e=>{pointer.dx=e.clientX-pointer.x;pointer.dy=e.clientY-pointer.y;pointer.x=e.clientX;pointer.y=e.clientY;document.documentElement.style.setProperty('--mx',e.clientX+'px');document.documentElement.style.setProperty('--my',e.clientY+'px')},{passive:true});
+
+const shards=$('#openingShards');
+for(let i=0;i<14;i++){const shard=document.createElement('i');shard.style.setProperty('--r',`${i*25.7-168}deg`);shard.style.setProperty('--d',`${90+Math.random()*210}px`);shards.appendChild(shard)}
+
+const revealObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');revealObserver.unobserve(entry.target)}}),{threshold:.1});
+$$('.reveal').forEach(el=>revealObserver.observe(el));
+
+const progress=$('#progress');let lastScroll=scrollY,scrollVelocity=0;
+function updateScroll(){const max=document.documentElement.scrollHeight-innerHeight;const ratio=max?Math.min(1,Math.max(0,scrollY/max)):0;progress.style.width=(ratio*100)+'%';scrollVelocity+=(scrollY-lastScroll-scrollVelocity)*.18;lastScroll=scrollY;document.documentElement.style.setProperty('--scroll-ratio',ratio);document.documentElement.style.setProperty('--scroll-velocity',Math.max(-1,Math.min(1,scrollVelocity/80)));$$('.scene-section').forEach(section=>{const r=section.getBoundingClientRect();const p=Math.max(0,Math.min(1,1-Math.abs((r.top+r.height*.5)-innerHeight*.5)/(innerHeight+r.height*.5)));section.style.setProperty('--section-progress',p)})}
+addEventListener('scroll',updateScroll,{passive:true});updateScroll();
+
+const heroTitle=$('#heroTitle');
+setInterval(()=>{if(document.visibilityState==='visible'&&!matchMedia('(prefers-reduced-motion:reduce)').matches){heroTitle.classList.add('glitch');setTimeout(()=>heroTitle.classList.remove('glitch'),450)}},5200);
+
+const ambient=$('#ambientCanvas'),actx=ambient.getContext('2d');let aw=0,ah=0,adpr=1,nodes=[];
+function resizeAmbient(){adpr=Math.min(devicePixelRatio||1,2);aw=innerWidth;ah=innerHeight;ambient.width=aw*adpr;ambient.height=ah*adpr;actx.setTransform(adpr,0,0,adpr,0,0);const count=aw<700?34:82;nodes=Array.from({length:count},(_,i)=>({x:Math.random()*aw,y:Math.random()*ah,vx:(Math.random()-.5)*.14,vy:.04+Math.random()*.18,a:.03+Math.random()*.1,t:i%3}))}
+function drawAmbient(){actx.clearRect(0,0,aw,ah);nodes.forEach((n,i)=>{n.x+=n.vx;n.y+=n.vy;if(n.y>ah+25)n.y=-25;if(n.x<-20)n.x=aw+20;if(n.x>aw+20)n.x=-20;const c=['120,247,238','255,74,112','141,120,255'][n.t];actx.fillStyle=`rgba(${c},${n.a})`;actx.fillRect(n.x,n.y,i%10===0?2:1,i%10===0?2:1);if(i%3===0){for(let j=i+1;j<Math.min(nodes.length,i+12);j++){const m=nodes[j],d=Math.hypot(n.x-m.x,n.y-m.y);if(d<145){actx.strokeStyle=`rgba(${c},${(1-d/145)*.035})`;actx.lineWidth=.5;actx.beginPath();actx.moveTo(n.x,n.y);actx.lineTo(m.x,m.y);actx.stroke()}}}});requestAnimationFrame(drawAmbient)}
+resizeAmbient();addEventListener('resize',resizeAmbient,{passive:true});if(!matchMedia('(prefers-reduced-motion:reduce)').matches)drawAmbient();
+
+const trail=$('#trailCanvas'),tctx=trail.getContext('2d');let tw=0,th=0,tdpr=1,streaks=[];
+function resizeTrail(){tdpr=Math.min(devicePixelRatio||1,2);tw=innerWidth;th=innerHeight;trail.width=tw*tdpr;trail.height=th*tdpr;tctx.setTransform(tdpr,0,0,tdpr,0,0)}
+addEventListener('pointermove',e=>{if(streaks.length>95)streaks.shift();streaks.push({x:e.clientX,y:e.clientY,vx:pointer.dx*.08,vy:pointer.dy*.08,life:1})},{passive:true});
+function drawTrail(){tctx.clearRect(0,0,tw,th);tctx.globalCompositeOperation='lighter';streaks.forEach((s,i)=>{s.life*=.9;s.x+=s.vx;s.y+=s.vy;tctx.strokeStyle=i%2?`rgba(120,247,238,${s.life*.16})`:`rgba(255,74,112,${s.life*.12})`;tctx.lineWidth=.5+s.life*1.6;tctx.beginPath();tctx.moveTo(s.x,s.y);tctx.lineTo(s.x-s.vx*6,s.y-s.vy*6);tctx.stroke()});streaks=streaks.filter(s=>s.life>.03);requestAnimationFrame(drawTrail)}
+resizeTrail();addEventListener('resize',resizeTrail,{passive:true});if(!matchMedia('(prefers-reduced-motion:reduce)').matches)drawTrail();
+
+const engine=$('#careerEngine'),engineCanvas=$('#engineCanvas'),ectx=engineCanvas.getContext('2d');let ew=0,eh=0,edpr=1,et=0,engineParticles=[];
+function resizeEngine(){const r=engine.getBoundingClientRect();edpr=Math.min(devicePixelRatio||1,2);ew=r.width;eh=r.height;engineCanvas.width=ew*edpr;engineCanvas.height=eh*edpr;ectx.setTransform(edpr,0,0,edpr,0,0);engineParticles=Array.from({length:ew<500?35:78},(_,i)=>({a:Math.random()*Math.PI*2,r:55+Math.random()*235,s:.002+Math.random()*.005,z:Math.random(),t:i%3}))}
+function drawEngine(){et+=.012;ectx.clearRect(0,0,ew,eh);const cx=ew*.53+(pointer.x-innerWidth*.5)*.012,cy=eh*.45+(pointer.y-innerHeight*.5)*.009;ectx.globalCompositeOperation='lighter';for(let ring=0;ring<4;ring++){ectx.strokeStyle=['rgba(120,247,238,.14)','rgba(255,74,112,.12)','rgba(141,120,255,.13)','rgba(255,255,255,.055)'][ring];ectx.lineWidth=ring===0?1:.65;ectx.beginPath();for(let i=0;i<=120;i++){const a=i/120*Math.PI*2;const rx=(95+ring*37),ry=(38+ring*17);const x=cx+Math.cos(a+et*(ring%2?-.35:.28))*rx;const y=cy+Math.sin(a)*ry+Math.sin(a*3+et)*7;(i?ectx.lineTo(x,y):ectx.moveTo(x,y))}ectx.stroke()}engineParticles.forEach((p,i)=>{p.a+=p.s;const x=cx+Math.cos(p.a+p.z*4)*p.r;const y=cy+Math.sin(p.a*1.2+p.z*3)*p.r*.38;const c=['120,247,238','255,74,112','141,120,255'][p.t];ectx.fillStyle=`rgba(${c},${i%8===0?.28:.08})`;const size=i%8===0?2:1;ectx.fillRect(x,y,size,size)});requestAnimationFrame(drawEngine)}
+resizeEngine();addEventListener('resize',resizeEngine,{passive:true});if(!matchMedia('(prefers-reduced-motion:reduce)').matches)drawEngine();
+
+if(matchMedia('(pointer:fine)').matches&&!matchMedia('(prefers-reduced-motion:reduce)').matches){engine.addEventListener('pointermove',e=>{const r=engine.getBoundingClientRect();const rx=((e.clientY-r.top)/r.height-.5)*-3.6;const ry=((e.clientX-r.left)/r.width-.5)*4.8;engine.style.setProperty('--engine-rx',`${rx}deg`);engine.style.setProperty('--engine-ry',`${ry}deg`)});engine.addEventListener('pointerleave',()=>{engine.style.setProperty('--engine-rx','0deg');engine.style.setProperty('--engine-ry','0deg')})}
+
+if(matchMedia('(pointer:fine)').matches&&!matchMedia('(prefers-reduced-motion:reduce)').matches){$$('.magnetic').forEach(el=>{el.addEventListener('pointermove',e=>{const r=el.getBoundingClientRect();const x=(e.clientX-r.left-r.width/2)*.025,y=(e.clientY-r.top-r.height/2)*.025;el.style.translate=`${x}px ${y}px`});el.addEventListener('pointerleave',()=>el.style.translate='')})}
+
+const REPO='SUSANO-OOO/test1',OWNER='SUSANO-OOO',ISSUE_PREFIX='[JOURNAL]';
+const API=`https://api.github.com/repos/${REPO}/issues?state=open&creator=${OWNER}&per_page=40&sort=created&direction=desc`;
+const list=$('#journalList'),form=$('#journalForm'),dateInput=$('#entryDate'),titleInput=$('#entryTitle'),bodyInput=$('#entryBody'),categoryInput=$('#entryCategory'),status=$('#journalStatus');
+const DRAFT_KEY='paopao_cloud_journal_draft_v1',OLD_KEY='paopao_journal_v2';
+dateInput.value=new Date().toISOString().slice(0,10);
+function esc(v=''){const m={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};return String(v).replace(/[&<>"']/g,c=>m[c])}
+function parseIssue(issue){const body=String(issue.body||'');const date=(body.match(/^DATE:\s*(.+)$/m)||[])[1]||String(issue.created_at||'').slice(0,10);const category=(body.match(/^CATEGORY:\s*(.+)$/m)||[])[1]||'日記';const divider=body.indexOf('\n---\n');const text=divider>=0?body.slice(divider+5).trim():body.replace(/<!--.*?-->/gs,'').replace(/^DATE:.*$/m,'').replace(/^CATEGORY:.*$/m,'').trim();return {id:issue.id,title:String(issue.title||'').replace(/^\[JOURNAL\]\s*/,'').replace(/^\d{4}-\d{2}-\d{2}\s*\|\s*/,''),date,category,text,url:issue.html_url,created:issue.created_at}}
+async function loadCloudEntries(){status.textContent='SYNCING CLOUD';list.innerHTML='<div class="empty-state"><div><b>クラウド記録を読み込んでいます。</b><span>GitHubから公開日記を取得中です。</span></div></div>';try{const response=await fetch(API,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});if(!response.ok)throw new Error(`HTTP ${response.status}`);const issues=await response.json();const entries=issues.filter(i=>!i.pull_request&&i.user&&i.user.login===OWNER&&String(i.title||'').startsWith(ISSUE_PREFIX)).map(parseIssue);status.textContent=`GITHUB CLOUD / ${entries.length} RECORDS`;if(!entries.length){list.innerHTML='<div class="empty-state"><div><b>公開された日記はまだありません。</b><span>右側から最初の記録をGitHubへ保存できます。</span></div></div>';return}list.innerHTML=entries.map(e=>`<article class="entry cloud-entry"><div class="entry-top"><time>${esc(e.date)}</time><span class="entry-category">${esc(e.category)}</span></div><h3>${esc(e.title)}</h3><p>${esc(e.text)}</p><a class="entry-link" href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">OPEN CLOUD RECORD ↗</a></article>`).join('')}catch(error){status.textContent='CLOUD CONNECTION ERROR';list.innerHTML=`<div class="cloud-error"><b>クラウド記録を取得できませんでした。</b><p>時間を置いて再読込してください。記録自体はGitHub上に残ります。</p><a href="https://github.com/${REPO}/issues" target="_blank" rel="noopener noreferrer">GitHubの記録一覧を開く ↗</a></div>`}}
+function saveDraft(){localStorage.setItem(DRAFT_KEY,JSON.stringify({date:dateInput.value,category:categoryInput.value,title:titleInput.value,body:bodyInput.value}))}
+function loadDraft(){try{const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null');if(d){dateInput.value=d.date||dateInput.value;categoryInput.value=d.category||categoryInput.value;titleInput.value=d.title||'';bodyInput.value=d.body||''}}catch{}}
+[dateInput,categoryInput,titleInput,bodyInput].forEach(el=>el.addEventListener('input',saveDraft));
+form.addEventListener('submit',e=>{e.preventDefault();const date=dateInput.value,title=titleInput.value.trim(),body=bodyInput.value.trim(),category=categoryInput.value;if(!date||!title||!body)return;const issueTitle=`${ISSUE_PREFIX} ${date} | ${title}`;const issueBody=`<!-- PAOPAO_JOURNAL -->\nDATE: ${date}\nCATEGORY: ${category}\n---\n${body}`;const url=`https://github.com/${REPO}/issues/new?title=${encodeURIComponent(issueTitle)}&body=${encodeURIComponent(issueBody)}`;saveDraft();window.open(url,'_blank','noopener,noreferrer');status.textContent='GITHUBで保存を確定してください'});
+$('#refreshEntries').addEventListener('click',loadCloudEntries);
+$$('.journal-tab').forEach(tab=>tab.addEventListener('click',()=>{$$('.journal-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');(tab.dataset.journalTab==='write'?$('#write'):$('#journalList')).scrollIntoView({behavior:'smooth',block:'center'})}));
+const migrationNote=$('#migrationNote');let oldEntries=[];try{oldEntries=JSON.parse(localStorage.getItem(OLD_KEY)||'[]')}catch{}if(Array.isArray(oldEntries)&&oldEntries.length){migrationNote.hidden=false;$('#migrateLocal').addEventListener('click',()=>{const e=oldEntries[0];dateInput.value=e.date||dateInput.value;categoryInput.value=e.category||'日記';titleInput.value=e.title||'';bodyInput.value=e.body||'';saveDraft();$('#write').scrollIntoView({behavior:'smooth',block:'center'})})}
+loadDraft();loadCloudEntries();
