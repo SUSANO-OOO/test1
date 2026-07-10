@@ -1,0 +1,20 @@
+{
+  "name": "MealLens",
+  "short_name": "MealLens",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f4ee",
+  "theme_color": "#102420",
+  "description": "スマホで食事写真を残し、カロリーとPFCをざっくり記録するダイエット管理アプリ",
+  "categories": ["health", "food", "lifestyle"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
