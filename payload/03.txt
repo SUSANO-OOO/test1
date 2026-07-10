@@ -1,0 +1,170 @@
+/canvas><div class="tag">DATA TURNS INTO MEMORY</div></aside></div></div></section><section class="section" data-scene="4"><div class="shell"><a class="social reveal" href="https://www.instagram.com/kite9njp?igsh=MnRhZjdicG9zcjk0&utm_source=qr" target="_blank" rel="noopener noreferrer"><div><small>04 / INSTAGRAM</small><h2>@kite9njp</h2><p>日常と、いま取り組んでいること。</p></div><div class="social-arrow"><span>↗</span></div></a></div></section></main><footer><div class="shell footer-row"><span>© PAOPAO</span><span>NAGASAKI / PERSONAL SIGNAL</span></div></footer></div><script>
+document.body.classList.add('motion');
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const DPR=Math.min(devicePixelRatio||1,2);
+let pointer={x:innerWidth*.66,y:innerHeight*.42,px:0,py:0,down:false};
+let sceneIndex=0;
+let sceneTarget=0;
+let scrollProgress=0;
+window.addEventListener('pointermove',e=>{
+pointer.px=e.clientX-pointer.x;pointer.py=e.clientY-pointer.y;
+pointer.x=e.clientX;pointer.y=e.clientY;
+document.documentElement.style.setProperty('--mx',e.clientX+'px');
+document.documentElement.style.setProperty('--my',e.clientY+'px');
+},{passive:true});
+window.addEventListener('pointerdown',()=>pointer.down=true,{passive:true});
+window.addEventListener('pointerup',()=>pointer.down=false,{passive:true});
+/* Cursor */
+const dot=$('.cursor-dot'), ring=$('.cursor-ring');
+if(matchMedia('(pointer:fine)').matches){
+addEventListener('pointermove',e=>{
+dot.style.left=ring.style.left=e.clientX+'px';
+dot.style.top=ring.style.top=e.clientY+'px';
+},{passive:true});
+$$('a,.row,.now,.portrait-card').forEach(el=>{
+el.addEventListener('mouseenter',()=>ring.classList.add('active'));
+el.addEventListener('mouseleave',()=>ring.classList.remove('active'));
+});
+}
+/* Scroll reveal */
+const revealObserver=new IntersectionObserver(entries=>{
+entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('show');revealObserver.unobserve(entry.target)}});
+},{threshold:.12});
+$$('.reveal').forEach(el=>revealObserver.observe(el));
+/* Scene detector */
+const sceneObserver=new IntersectionObserver(entries=>{
+entries.forEach(entry=>{
+if(entry.isIntersecting && entry.intersectionRatio>.32){
+sceneTarget=Number(entry.target.dataset.scene||0);
+}
+});
+},{threshold:[.32,.5,.7]});
+$$('[data-scene]').forEach(el=>sceneObserver.observe(el));
+/* Scroll progress */
+const progressEl=$('#progress');
+function updateScroll(){
+const total=document.documentElement.scrollHeight-innerHeight;
+scrollProgress=total>0?Math.min(1,Math.max(0,scrollY/total)):0;
+progressEl.style.width=(scrollProgress*100)+'%';
+}
+addEventListener('scroll',updateScroll,{passive:true});updateScroll();
+/* Canvas utilities */
+function fitCanvas(canvas){
+const r=canvas.getBoundingClientRect();
+canvas.width=Math.max(1,Math.floor(r.width*DPR));
+canvas.height=Math.max(1,Math.floor(r.height*DPR));
+const ctx=canvas.getContext('2d');
+ctx.setTransform(DPR,0,0,DPR,0,0);
+return {ctx,w:r.width,h:r.height};
+}
+/* WORLD CANVAS
+Three orbit systems represent three career phases.
+The vertical shard represents the current transition toward independent work.
+*/
+const world=$('#worldCanvas');
+let worldCtx,wW,wH,worldParticles=[];
+function resizeWorld(){
+const data=fitCanvas(world);worldCtx=data.ctx;wW=data.w;wH=data.h;
+const count=innerWidth<700?48:90;
+worldParticles=Array.from({length:count},()=>({
+a:Math.random()*Math.PI*2,
+r:80+Math.random()*260,
+z:Math.random()*2-1,
+s:.002+Math.random()*.004,
+seed:Math.random()*100
+}));
+}
+function rot3(p,rx,ry,rz){
+let {x,y,z}=p;
+let c=Math.cos(rx),s=Math.sin(rx);[y,z]=[y*c-z*s,y*s+z*c];
+c=Math.cos(ry);s=Math.sin(ry);[x,z]=[x*c+z*s,-x*s+z*c];
+c=Math.cos(rz);s=Math.sin(rz);[x,y]=[x*c-y*s,x*s+y*c];
+return {x,y,z};
+}
+function project(p,cx,cy,scale){
+const depth=3.4/(3.4+p.z*.006);
+return {x:cx+p.x*scale*depth,y:cy+p.y*scale*depth,d:depth};
+}
+function drawOrbit(ctx,cx,cy,rx,ry,rot,t,alpha,color,phase){
+ctx.save();
+ctx.globalCompositeOperation='lighter';
+ctx.strokeStyle=color;
+ctx.globalAlpha=alpha;
+ctx.lineWidth=1;
+ctx.beginPath();
+const seg=130;
+for(let i=0;i<=seg;i++){
+const a=i/seg*Math.PI*2;
+let p={x:Math.cos(a)*rx,y:Math.sin(a)*ry,z:Math.sin(a*2+phase)*28};
+p=rot3(p,rot*.45,rot,rot*.18);
+const q=project(p,cx,cy,1);
+i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);
+}
+ctx.stroke();
+for(let i=0;i<5;i++){
+const a=t*(.35+i*.03)+i*Math.PI*2/5+phase;
+let p={x:Math.cos(a)*rx,y:Math.sin(a)*ry,z:Math.sin(a*2+phase)*28};
+p=rot3(p,rot*.45,rot,rot*.18);
+const q=project(p,cx,cy,1);
+ctx.globalAlpha=alpha*.85;
+ctx.fillStyle=color;
+ctx.beginPath();ctx.arc(q.x,q.y,1.2+i*.15,0,Math.PI*2);ctx.fill();
+}
+ctx.restore();
+}
+function drawShard(ctx,cx,cy,t,scale,alpha){
+ctx.save();
+ctx.translate(cx,cy);
+ctx.rotate(.23+Math.sin(t*.35)*.03);
+ctx.globalCompositeOperation='lighter';
+const grad=ctx.createLinearGradient(0,-180*scale,0,180*scale);
+grad.addColorStop(0,'rgba(140,247,238,0)');
+grad.addColorStop(.22,'rgba(140,247,238,.7)');
+grad.addColorStop(.5,'rgba(255,255,255,.9)');
+grad.addColorStop(.78,'rgba(240,79,113,.75)');
+grad.addColorStop(1,'rgba(240,79,113,0)');
+ctx.globalAlpha=alpha;
+ctx.fillStyle=grad;
+ctx.beginPath();
+ctx.moveTo(-5*scale,-180*scale);
+ctx.lineTo(7*scale,-135*scale);
+ctx.lineTo(4*scale,180*scale);
+ctx.lineTo(-8*scale,130*scale);
+ctx.closePath();ctx.fill();
+ctx.shadowBlur=32*scale;ctx.shadowColor='rgba(140,247,238,.45)';
+ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=.8;
+ctx.stroke();
+ctx.restore();
+}
+let worldTime=0;
+function drawWorld(){
+worldTime+=.012;
+sceneIndex+=(sceneTarget-sceneIndex)*.045;
+worldCtx.clearRect(0,0,wW,wH);
+const mobile=wW<760;
+const baseX=mobile?wW*.55:wW*.74;
+const baseY=mobile?wH*.56:wH*.48;
+const px=(pointer.x-wW*.5)*.035;
+const py=(pointer.y-wH*.5)*.025;
+const shiftX=Math.sin(sceneIndex*.9)*30 + px;
+const shiftY=(sceneIndex-1.5)*24 + py;
+const cx=baseX+shiftX,cy=baseY+shiftY;
+const coreScale=mobile?.72:1;
+// Atmospheric rays
+worldCtx.save();
+worldCtx.globalCompositeOperation='lighter';
+for(let i=0;i<10;i++){
+const a=worldTime*.06+i*Math.PI/5;
+const r=220+sceneIndex*18;
+const x=cx+Math.cos(a)*r;
+const y=cy+Math.sin(a)*r*.55;
+const g=worldCtx.createLinearGradient(cx,cy,x,y);
+g.addColorStop(0,'rgba(140,247,238,.04)');
+g.addColorStop(1,'rgba(240,79,113,0)');
+worldCtx.strokeStyle=g;worldCtx.lineWidth=.7;
+worldCtx.beginPath();worldCtx.moveTo(cx,cy);worldCtx.lineTo(x,y);worldCtx.stroke();
+}
+worldCtx.restore();
+const spread=sceneIndex<1.6?sceneIndex*22:35-Math.min(1,sceneIndex-1.6)*18;
+drawOrbit(worldCtx,cx-spread
