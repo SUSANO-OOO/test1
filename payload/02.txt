@@ -1,0 +1,59 @@
+:800 .62rem ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em}
+.social h2{margin:7px 0 4px;font-size:clamp(2.7rem,6vw,5.7rem)}
+.social p{margin:0;color:#949797}
+.social-arrow{width:74px;height:74px;border:1px solid var(--line);display:grid;place-items:center;transform:rotate(45deg);transition:transform .55s,border-color .25s}
+.social-arrow span{transform:rotate(-45deg);font-size:1.45rem}
+.social:hover .social-arrow{transform:rotate(135deg);border-color:var(--pink)}
+.social:hover .social-arrow span{transform:rotate(-135deg)}
+footer{padding:29px 0;color:#5f6568;font:700 .57rem ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em}
+.footer-row{display:flex;justify-content:space-between;gap:20px}
+/* Motion and cursor */
+.reveal{opacity:1;transform:none}
+.motion .reveal{opacity:0;transform:translateY(24px);transition:opacity .75s,transform .75s cubic-bezier(.2,.8,.2,1)}
+.motion .reveal.show{opacity:1;transform:none}
+.cursor-dot,.cursor-ring{display:none}
+@media(pointer:fine){
+body.motion{cursor:none}
+body.motion a,body.motion button{cursor:none}
+.cursor-dot,.cursor-ring{display:block;position:fixed;left:0;top:0;z-index:3600;pointer-events:none;border-radius:50%;transform:translate(-50%,-50%)}
+.cursor-dot{width:5px;height:5px;background:var(--pink)}
+.cursor-ring{width:34px;height:34px;border:1px solid rgba(240,236,227,.72);transition:width .2s,height .2s,border-color .2s,background .2s;mix-blend-mode:difference}
+.cursor-ring.active{width:72px;height:72px;border-color:var(--cyan);background:rgba(255,255,255,.055)}
+}
+@media(max-width:980px){
+nav{display:none}
+.hero-layout{grid-template-columns:1fr;gap:40px}
+.hero-art{min-height:520px}
+.portrait-card{width:180px;right:9vw}
+.section-head,.profile-grid,.journal-wrap{grid-template-columns:1fr}
+.journal-art{position:relative;top:auto;height:280px}
+}
+@media(max-width:640px){
+.shell{width:min(calc(100% - 22px),var(--max))}
+.header-row{height:68px}
+.hero{padding:92px 0 54px}
+.hero h1{font-size:clamp(5rem,25vw,7.2rem)}
+.hero-art{min-height:450px}
+.portrait-card{width:150px;right:7vw;bottom:12px}
+.art-label{right:0}
+.section{padding:80px 0}
+.section-head{gap:18px}
+.profile-grid{gap:34px}
+.current{grid-template-columns:1fr}
+.row,.journal-row{grid-template-columns:1fr;gap:7px}
+.journal-row span{justify-self:start}
+.social{grid-template-columns:1fr}
+.social-arrow{width:60px;height:60px;margin-left:8px}
+.footer-row{display:block}
+}
+@media(prefers-reduced-motion:reduce){
+html{scroll-behavior:auto}
+.opening{animation-delay:.35s}
+.panel.left{animation:leftOpen .2s ease .08s forwards}
+.panel.right{animation:rightOpen .2s ease .08s forwards}
+.slash{animation:slash .14s ease forwards}
+.slash-glow{display:none}
+.page{animation:settle .2s ease .08s both}
+.motion .reveal{opacity:1;transform:none}
+}
+</style></head><body><div class="bg"></div><div class="grid"></div><canvas id="worldCanvas"></canvas><canvas id="trailCanvas"></canvas><div class="noise"></div><div class="progress" id="progress"></div><div class="cursor-dot"></div><div class="cursor-ring"></div><div class="opening" aria-hidden="true"><div class="panel left"></div><div class="panel right"></div><div class="slash-glow"></div><div class="slash"></div></div><div class="page"><header><div class="shell header-row"><a class="brand" href="#top"><span class="brand-mark"></span><span>PAOPAO</span></a><nav><a href="#profile">PROFILE</a><a href="#now">NOW</a><a href="#journal">JOURNAL</a></nav><a class="ig" href="https://www.instagram.com/kite9njp?igsh=MnRhZjdicG9zcjk0&utm_source=qr" target="_blank" rel="noopener noreferrer">INSTAGRAM</a></div></header><main id="top"><section class="hero" data-scene="0"><div class="shell hero-layout"><div class="reveal"><div class="eyebrow">PERSONAL SIGNAL / NAGASAKI</div><h1><span>PAO</span><span>PAO</span><small>パオパオ</small></h1><p class="lead"><strong>現場を動かしてきた経験を、次の仕事へ。</strong><br>26歳、長崎。現在は独立に向けた事業づくりとAIアプリ開発に取り組んでいます。</p><div class="meta"><div><span>BASE</span><b>長崎</b></div><div><span>STATUS</span><b>独立準備中</b></div><div><span>INTEREST</span><b>温泉 / サバゲー / AI</b></div></div></div><div class="hero-art reveal" id="heroArt"><div class="art-axis"></div><div class="art-label">THREE CAREERS / ONE TRANSITION</div><div class="portrait-card" id="portraitCard"><div class="portrait"><img src="portrait.jpg" alt="パオパオのプロフィール写真"></div><div class="portrait-caption"><b>PAOPAO</b><span>26 / NAGASAKI</span></div></div><div class="hero-note">INTERACT WITH THE SIGNAL</div></div></div></section><div class="art-divider"><canvas id="dividerCanvas"></canvas><div class="caption">SIGNAL TRANSITION / CAREER TO CREATION</div></div><section class="section" id="profile" data-scene="1"><div class="shell"><div class="section-head reveal"><div><span class="no">01 / PROFILE</span><h2>三つの現場で、役割を担ってきた。</h2></div><p>コールセンター、バー、防衛産業関連の技術支援。業種は違っても、状況を整理し、現場を前に進める仕事を続けてきました。</p></div><div class="profile-grid"><div class="profile-copy reveal"><h3>パオパオ</h3><p>人と業務の両方を見ながら、必要な行動へつなげることを得意としています。</p><div class="spec"><div><span>AGE</span><b>26歳</b></div><div><span>BASE</span><b>長崎県</b></div><div><span>FOCUS</span><b>独立準備 / AIアプリ開発</b></div><div><span>HOBBY</span><b>温泉巡り / サバイバルゲーム</b></div></div></div><div class="timeline reveal"><article class="row"><time>19–24</time><div><h3>大手コールセンター / スーパーバイザー</h3><p>現場運営、メンバー対応、業務整理を担当。</p></div></article><article class="row"><time>1.5 YEARS</time><div><h3>バー / 店舗責任者</h3><p>接客、店舗運営、現場管理、人材対応を担当。</p></div></article><article class="row"><time>6 MONTHS</time><div><h3>防衛産業関連 / PCテクニカルサポート</h3><p>PC環境を中心とした技術支援に従事。</p></div></article></div></div></div></section><section class="section" id="now" data-scene="2"><div class="shell"><div class="section-head reveal"><div><span class="no">02 / NOW</span><h2>独立に向け、手を動かす。</h2></div><p>学んだ内容をそのままにせず、事業設計と試作へ落とし込んでいます。</p></div><div class="current reveal"><article class="now"><code>BUSINESS</code><h3>独立に向けた事業づくり</h3><p>サービス設計、情報発信、運用の仕組みを学び、実践しています。</p></article><article class="now"><code>DEVELOPMENT</code><h3>AIを使ったアプリ開発</h3><p>アイデアをWebアプリや試作品として形にするため、設計と実装を進めています。</p></article></div></div></section><section class="section" id="journal" data-scene="3"><div class="shell"><div class="section-head reveal"><div><span class="no">03 / JOURNAL</span><h2>考えたことを、残していく。</h2></div><p>独立までの過程、AI開発、温泉、サバゲー。日々の記録はサイト本体と分けて保存します。</p></div><div class="journal-wrap"><div class="journal reveal" id="journalList"><div class="journal-empty">LOADING JOURNAL...</div></div><aside class="journal-art reveal"><canvas id="journalCanvas">
