@@ -1,0 +1,135 @@
+,cy,170*coreScale,72*coreScale,worldTime*.18,worldTime,.36,'rgba(140,247,238,.8)',0);
+drawOrbit(worldCtx,cx+spread*.5,cy+12,138*coreScale,110*coreScale,-worldTime*.14,worldTime,.28,'rgba(143,121,255,.8)',1.8);
+drawOrbit(worldCtx,cx+spread,cy-6,105*coreScale,154*coreScale,worldTime*.11,worldTime,.24,'rgba(240,79,113,.85)',3.4);
+// Central transition blade
+const shardScale=(.82+Math.sin(worldTime*.7)*.03)*coreScale;
+drawShard(worldCtx,cx,cy,worldTime,shardScale,.5);
+// Particle field morphs by scene.
+worldCtx.save();
+worldCtx.globalCompositeOperation='lighter';
+worldParticles.forEach((p,i)=>{
+p.a+=p.s*(1+sceneIndex*.12);
+let r=p.r;
+let x,y;
+if(sceneIndex<2.5){
+x=cx+Math.cos(p.a+p.seed)*r*coreScale;
+y=cy+Math.sin(p.a*1.15+p.seed)*r*.42*coreScale + Math.sin(worldTime+p.seed)*18;
+}else{
+const col=i%9,row=Math.floor(i/9);
+const gridX=(col-4)*34*coreScale;
+const gridY=(row-4)*18*coreScale;
+const blend=Math.min(1,sceneIndex-2.5);
+const ox=Math.cos(p.a+p.seed)*r*coreScale;
+const oy=Math.sin(p.a*1.15+p.seed)*r*.42*coreScale;
+x=cx+ox*(1-blend)+gridX*blend;
+y=cy+oy*(1-blend)+gridY*blend;
+}
+const dist=Math.hypot(pointer.x-x,pointer.y-y);
+const repel=Math.max(0,1-dist/150);
+x-=(pointer.x-x)*repel*.045;
+y-=(pointer.y-y)*repel*.045;
+const alpha=.08+(i%7===0?.22:.07);
+worldCtx.fillStyle=i%3===0?`rgba(140,247,238,${alpha})`:i%3===1?`rgba(240,79,113,${alpha})`:`rgba(143,121,255,${alpha})`;
+worldCtx.fillRect(x,y,i%7===0?2:1,i%7===0?2:1);
+});
+worldCtx.restore();
+requestAnimationFrame(drawWorld);
+}
+resizeWorld();addEventListener('resize',resizeWorld,{passive:true});drawWorld();
+/* Pointer trail canvas: short-lived brush strokes */
+const trail=$('#trailCanvas');let trailCtx,tW,tH,trails=[];
+function resizeTrail(){const d=fitCanvas(trail);trailCtx=d.ctx;tW=d.w;tH=d.h}
+resizeTrail();addEventListener('resize',resizeTrail,{passive:true});
+addEventListener('pointermove',e=>{
+if(trails.length>100)trails.shift();
+trails.push({x:e.clientX,y:e.clientY,vx:pointer.px*.12,vy:pointer.py*.12,life:1});
+},{passive:true});
+function drawTrail(){
+trailCtx.clearRect(0,0,tW,tH);
+trailCtx.globalCompositeOperation='lighter';
+trails.forEach((p,i)=>{
+p.life*=.92;p.x+=p.vx;p.y+=p.vy;
+trailCtx.strokeStyle=i%2?`rgba(140,247,238,${p.life*.18})`:`rgba(240,79,113,${p.life*.12})`;
+trailCtx.lineWidth=.7+p.life*1.6;
+trailCtx.beginPath();trailCtx.moveTo(p.x,p.y);trailCtx.lineTo(p.x-p.vx*5,p.y-p.vy*5);trailCtx.stroke();
+});
+trails=trails.filter(p=>p.life>.03);
+requestAnimationFrame(drawTrail);
+}
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches)drawTrail();
+/* Divider canvas: transition waveform */
+const divider=$('#dividerCanvas');let divCtx,dW,dH,divT=0;
+function resizeDivider(){const d=fitCanvas(divider);divCtx=d.ctx;dW=d.w;dH=d.h}
+resizeDivider();addEventListener('resize',resizeDivider,{passive:true});
+function drawDivider(){
+divT+=.018;divCtx.clearRect(0,0,dW,dH);
+const mid=dH/2;
+for(let layer=0;layer<3;layer++){
+divCtx.strokeStyle=layer===0?'rgba(140,247,238,.28)':layer===1?'rgba(143,121,255,.2)':'rgba(240,79,113,.22)';
+divCtx.lineWidth=layer===0?1.1:.7;divCtx.beginPath();
+for(let x=0;x<=dW;x+=4){
+const y=mid+Math.sin(x*.018+divT*(1+layer*.15)+layer)*8+Math.sin(x*.006-divT*.8)*5;
+x?divCtx.lineTo(x,y):divCtx.moveTo(x,y);
+}
+divCtx.stroke();
+}
+requestAnimationFrame(drawDivider);
+}
+drawDivider();
+/* Journal canvas: particles align like written lines */
+const jCanvas=$('#journalCanvas');let jCtx,jW,jH,jT=0;
+function resizeJournal(){const d=fitCanvas(jCanvas);jCtx=d.ctx;jW=d.w;jH=d.h}
+resizeJournal();addEventListener('resize',resizeJournal,{passive:true});
+function drawJournalArt(){
+jT+=.012;jCtx.clearRect(0,0,jW,jH);
+jCtx.globalCompositeOperation='lighter';
+for(let row=0;row<11;row++){
+const y=34+row*28;
+const len=(row%3===0?.82:row%3===1?.62:.74)*jW;
+for(let x=24;x<len;x+=12){
+const wave=Math.sin(jT*1.4+x*.025+row)*2.5;
+const pulse=(Math.sin(jT*2+row*.8+x*.02)+1)/2;
+jCtx.fillStyle=row%3===0?`rgba(140,247,238,${.08+pulse*.12})`:row%3===1?`rgba(240,79,113,${.06+pulse*.1})`:`rgba(143,121,255,${.05+pulse*.09})`;
+jCtx.fillRect(x,y+wave,1.2+(x%36===0?2:0),1.2);
+}
+}
+jCtx.strokeStyle='rgba(255,255,255,.05)';
+jCtx.strokeRect(18,18,jW-36,jH-36);
+requestAnimationFrame(drawJournalArt);
+}
+drawJournalArt();
+/* Portrait parallax */
+const portrait=$('#portraitCard');
+if(portrait && matchMedia('(pointer:fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+portrait.addEventListener('pointermove',e=>{
+const r=portrait.getBoundingClientRect();
+const rx=((e.clientY-r.top)/r.height-.5)*-3;
+const ry=((e.clientX-r.left)/r.width-.5)*3;
+portrait.style.transform=`perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) rotate(2.2deg)`;
+});
+portrait.addEventListener('pointerleave',()=>portrait.style.transform='rotate(2.2deg)');
+}
+/* Journal data lives outside the LP file. Updating the LP never overwrites posts.json. */
+function escapeHtml(value=''){
+const map={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+return String(value).replace(/[&<>"']/g,c=>map[c]);
+}
+async function loadJournal(){
+const target=$('#journalList');
+try{
+const response=await fetch('./posts.json?ts='+Date.now(),{cache:'no-store'});
+if(!response.ok)throw new Error('load failed');
+const posts=await response.json();
+const visible=Array.isArray(posts)?posts.filter(p=>!p.deleted):[];
+if(!visible.length){
+target.innerHTML='<div class="journal-empty">NO ENTRY YET / 最初の記録はまだありません。</div>';
+return;
+}
+target.innerHTML=visible.sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(post=>`
+<article class="journal-row"><time>${escapeHtml(post.date||'')}</time><div><h3>${escapeHtml(post.title||'無題')}</h3><p>${escapeHtml(post.summary||'')}</p></div><span>${escapeHtml(post.category||'日記')}</span></article>`).join('');
+}catch(error){
+target.innerHTML='<div class="journal-empty">JOURNAL DATA IS TEMPORARILY UNAVAILABLE.</div>';
+}
+}
+loadJournal();
+</script></body></html>
