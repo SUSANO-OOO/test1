@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#102420">
+    <title>MealLens</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="styles.css?v=20260711-1">
+  </head>
+  <body data-view="home">
+    <div class="mobile-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">MealLens</p>
+          <h1 id="appTitle">今日の残り</h1>
+          <p id="appLead" class="lead">写真で記録した食事から、残りカロリーとたんぱく質を見ます。</p>
+        </div>
+        <label class="date-pill">
+          <span>日付</span>
+          <input id="activeDate" type="date">
+        </label>
+      </header>
+
+      <main>
+        <section id="home" class="view active">
+          <section class="today-hero">
+            <div class="hero-copy">
+              <span id="heroLabel" class="hero-label">今日の残り</span>
+              <strong id="remainingCalories">--</strong>
+              <small id="targetCaption">目安設定を入れると、今日の残りが出ます</small>
+            </div>
+            <div class="hero-visual">
+              <div id="calorieRing" class="calorie-ring" aria-label="今日の摂取カロリー進捗">
+                <span id="caloriePercent">0%</span>
+                <small>摂取</small>
+              </div>
+              <div class="food-dots">
+                <i></i>
+                <i></i>
+                <i></i>
+              </div>
+            </div>
+            <button id="goCaptureHero" class="camera-button" type="button">食事を記録する</button>
+          </section>
+
+          <section class="mini-metrics" aria-label="今日の概要">
+            <article>
+              <span>摂取</span>
+              <strong id="todayCalories">0 kcal</strong>
+            </article>
+            <article>
+              <span>たんぱく質</span>
+              <strong id="todayProtein">0 g</strong>
+            </article>
+            <article>
+              <span>記録</span>
+              <strong id="todayCount">0 食</strong>
+            </article>
+          </section>
+
+          <section class="section-block">
+            <div class="section-title">
+              <p class="eyebrow">きょう</p>
+              <h2>今日の食事ログ</h2>
+            </div>
+            <div id="mealList" class="meal-list"></div>
+          </section>
+
+          <section class="section-block">
+            <div class="section-title">
+              <p class="eyebrow">つぎ</p>
+              <h2>次の食事の目安</h2>
+            </div>
+            <div id="nextSuggestion" class="suggestion-box"></div>
+          </section>
+        </section>
+
+        <section id="capture" class="view">
+          <section class="section-block capture-block">
+            <div class="section-title">
+              <p class="eyebrow">記録</p>
+              <h2>食事を写真で記録</h2>
+            </div>
+            <div id="editStatus" class="edit-status" hidden>
+              <div>
+                <strong>記録を編集中</strong>
+                <span></span>
+              </div>
+              <button id="cancelEdit" class="icon-text-button" type="button" hidden>新規に戻す</button>
+            </div>
+
+            <div class="photo-drop" aria-live="polite">
+              <img id="photoPreview" alt="">
+              <button id="changePhoto" class="photo-change-button" type="button" hidden>写真を変更</button>
+              <div class="photo-scan" aria-hidden="true">
+                <i></i>
+                <span>食材をスキャン中</span>
+              </div>
+            </div>
+
+            <div class="photo-actions">
+              <label class="real-file-action library-action">
+                <span>写真から選ぶ</span>
+                <input id="libraryPhoto" type="file" accept="image/*">
+              </label>
+              <label class="real-file-action camera-action">
+                <span>カメラで撮る</span>
+                <input id="cameraPhoto" type="file" accept="image/*" capture="environment">
+              </label>
+            </div>
+
+            <div id="visionPanel" class="vision-panel">
+              <span class="field-label">写真から食材候補を探す</span>
+              <div id="visionSummary" class="vision-summary">写真は端末内AIで解析します。初回だけ解析モデルの準備に時間がかかります。</div>
+              <div id="visionChips" class="vision-chips"></div>
+              <div id="visionIngredientChoices" class="vision-ingredient-choices" hidden></div>
+              <div id="visionBreakdown" class="vision-breakdown" hidden></div>
+            </div>
+
+            <div class="input-stack">
+              <div>
+                <span class="field-label">いつ食べた？</span>
+                <div id="mealSlotGroup" class="slot-tabs" role="radiogroup" aria-label="食事タイミング">
+                  <button class="active" data-slot="朝" type="button">朝</button>
+                  <button data-slot="昼" type="button">昼</button>
+                  <button data-slot="夜" type="button">夜</button>
+                  <button data-slot="間食" type="button">間食</button>
+                </div>
+              </div>
+              <label>
+                食べた時間
+                <input id="mealTime" type="time">
+              </label>
+
+              <label>
+                料理名
+                <input id="mealName" type="text" placeholder="例：鶏肉とご飯、コンビニのサンドイッチ">
+              </label>
+
+              <section class="ingredient-card" aria-labelledby="ingredientTitle">
+                <div class="ingredient-heading">
+                  <div>
+                    <span class="field-label">材料から計算</span>
+                    <h3 id="ingredientTitle">食べた材料を入力</h3>
+                  </div>
+                  <button id="addIngredient" class="icon-button" type="button" aria-label="食材を追加" title="食材を追加">+</button>
+                </div>
+                <p class="field-help">食べた分の材料と量を入れると、写真の概算は使わず成分表から計算します。重さは生の状態を目安に入力してください。</p>
+                <div id="commonFoodChips" class="common-food-chips" aria-label="よく使う食材"></div>
+                <p id="foodDataSource" class="food-data-source"></p>
+                <div id="ingredientRows" class="ingredient-rows"></div>
+                <div id="ingredientEstimateNote" class="ingredient-estimate-note" aria-live="polite"></div>
+                <button id="estimateIngredients" class="secondary-action" type="button">材料から計算する</button>
+              </section>
+
+              <details class="photo-only-options">
+                <summary>材料が分からないとき、写真だけで概算する</summary>
+                <p class="field-help">写真だけの場合に近い内容を選びます。材料を入力した場合は使いません。</p>
+                <div>
+                  <span class="field-label">写真の内容に近いもの</span>
+                <div id="mealTypeGroup" class="chip-grid" role="radiogroup" aria-label="食事タイプ">
+                  <button class="chip active" data-type="setMeal" type="button">定食</button>
+                  <button class="chip" data-type="riceBowl" type="button">丼・カレー</button>
+                  <button class="chip" data-type="noodle" type="button">麺類</button>
+                  <button class="chip" data-type="bread" type="button">パン類</button>
+                  <button class="chip" data-type="sweet" type="button">デザート</button>
+                  <button class="chip" data-type="salad" type="button">サラダ</button>
+                  <button class="chip" data-type="snack" type="button">おやつ</button>
+                  <button class="chip" data-type="drink" type="button">飲み物</button>
+                </div>
+                </div>
+
+                <div>
+                <span class="field-label">油の使い方</span>
+                <div id="cookingGroup" class="segmented" role="radiogroup" aria-label="調理・油の使い方">
+                  <button class="active" data-cooking="plain" type="button">油は少なめ</button>
+                  <button data-cooking="sauteed" type="button">炒め物</button>
+                  <button data-cooking="fried" type="button">揚げた</button>
+                </div>
+              </div>
+
+              <div>
+                <span class="field-label">写真の量</span>
+                <div id="portionGroup" class="segmented" role="radiogroup" aria-label="量">
+                  <button data-portion="light" type="button">軽め</button>
+                  <button class="active" data-portion="normal" type="button">普通</button>
+                  <button data-portion="large" type="button">多め</button>
+                </div>
+              </div>
+
+              <div>
+                <span class="field-label">食べ残し</span>
+                <div id="eatenRatioGroup" class="segmented eaten-segmented" role="radiogroup" aria-label="実際に食べた量">
+                  <button class="active" data-eaten="all" type="button">全部</button>
+                  <button data-eaten="most" type="button">少し残した</button>
+                  <button data-eaten="half" type="button">半分くらい</button>
+                  <button data-eaten="taste" type="button">少しだけ</button>
+                </div>
+              </div>
+
+              <div class="refine-card">
+                <span class="field-label">写真だけでは分からない点</span>
+                <div class="refine-grid">
+                  <label><input id="riceBoost" type="checkbox"> ご飯・麺を大盛りにした</label>
+                  <label><input id="oilBoost" type="checkbox"> 油を多く使った</label>
+                  <label><input id="proteinBoost" type="checkbox"> 肉・魚・卵を追加した</label>
+                  <label><input id="sauceBoost" type="checkbox"> 甘いソース・たれが多い</label>
+                </div>
+              </div>
+
+              <button id="estimateMeal" class="primary-action" type="button">写真だけで概算する</button>
+              </details>
+            </div>
+          </section>
+
+          <section id="estimatePanel" class="section-block estimate-panel">
+            <div class="section-title compact">
+              <p class="eyebrow">数字</p>
+              <h2>この食事の見立て</h2>
+            </div>
+            <div id="confidenceBadge" class="confidence-badge">写真から見立て</div>
+            <div class="macro-grid">
+              <label>
+                kcal
+                <input id="caloriesInput" type="number" min="0" step="1">
+              </label>
+              <label>
+                P
+                <input id="proteinInput" type="number" min="0" step="0.1">
+              </label>
+              <label>
+                F
+                <input id="fatInput" type="number" min="0" step="0.1">
+              </label>
+              <label>
+                C
+                <input id="carbInput" type="number" min="0" step="0.1">
+              </label>
+            </div>
+            <div id="nutritionReview" class="nutrition-review" aria-live="polite"></div>
+            <div class="api-box">
+              <p class="note">栄養データは参考用。写真の見立てから大きく外れる値は入れません。</p>
+              <button id="lookupUsda" class="secondary-action" type="button">栄養データでならす</button>
+            </div>
+            <label>
+              メモ
+              <textarea id="mealMemo" rows="3" placeholder="外食だった、量が多かった、残した、など"></textarea>
+            </label>
+            <button id="saveMeal" class="primary-action" type="button">記録に入れる</button>
+          </section>
+        </section>
+
+        <section id="insight" class="view">
+          <section class="section-block">
+            <div class="section-title">
+              <p class="eyebrow">分析</p>
+              <h2>食事ログの推移</h2>
+            </div>
+            <div class="segmented analysis-switch">
+              <button class="active" data-range="week" type="button">週</button>
+              <button data-range="month" type="button">月</button>
+            </div>
+            <div id="analysisStats" class="analysis-stats"></div>
+            <div id="analysisChart" class="week-chart"></div>
+          </section>
+
+          <section class="section-block">
+            <div class="section-title">
+              <p class="eyebrow">読み取り</p>
+              <h2 id="analysisTitle">今週の見方</h2>
+            </div>
+            <div id="analysisInsight" class="suggestion-box"></div>
+          </section>
+        </section>
+
+        <section id="settings" class="view">
+          <section class="section-block">
+            <div class="section-title">
+              <p class="eyebrow">目安設定</p>
+              <h2>1日の目安を合わせる</h2>
+            </div>
+            <form id="profileForm" class="profile-form">
+              <div class="two-col">
+                <label>
+                  性別
+                  <select id="sexInput">
+                    <option value="female">女性</option>
+                    <option value="male">男性</option>
+                  </select>
+                </label>
+                <label>
+                  年齢
+                  <input id="ageInput" type="number" min="18" max="99" step="1">
+                </label>
+              </div>
+              <div class="two-col">
+                <label>
+                  身長
+                  <input id="heightInput" type="number" min="120" max="230" step="1" placeholder="cm">
+                </label>
+                <label>
+                  現在体重
+                  <input id="weightInput" type="number" min="30" max="250" step="0.1" placeholder="kg">
+                </label>
+              </div>
+              <div class="two-col">
+                <label id="targetWeightField">
+                  目標体重
+                  <input id="targetWeightInput" type="number" min="30" max="250" step="0.1" placeholder="kg">
+                </label>
+                <label>
+                  カロリー方針
+                  <select id="paceInput">
+                    <option value="maintain">まず維持する</option>
+                    <option value="gentle">ゆるく減らす</option>
+                    <option value="standard">しっかり減らす</option>
+                  </select>
+                </label>
+              </div>
+              <label>
+                仕事中の活動量
+                <select id="workActivityInput">
+                  <option value="0">ほぼ座りっぱなし</option>
+                  <option value="0.08">座り仕事中心・少し移動</option>
+                  <option value="0.18">立ち仕事が多い</option>
+                  <option value="0.3">歩く/運ぶ作業が多い</option>
+                </select>
+              </label>
+              <label>
+                仕事以外の活動量
+                <select id="dailyActivityInput">
+                  <option value="0">家ではゆっくり過ごす</option>
+                  <option value="0.08">家事や買い物で少し歩く</option>
+                  <option value="0.17">散歩や軽い運動をする</option>
+                  <option value="0.28">運動する日が多い</option>
+                  </select>
+              </label>
+              <p id="profileWarning" class="profile-warning" role="status" aria-live="polite"></p>
+              <button id="saveProfile" class="primary-action" type="submit">この目安で保存</button>
+              <div id="targetPreview" class="target-preview"></div>
+            </form>
+          </section>
+
+          <section class="section-block install-card">
+            <div class="section-title">
+              <p class="eyebrow">アプリ化</p>
+              <h2>アプリとして使う</h2>
+            </div>
+            <p id="installStatus" class="install-status">ホーム画面に追加すると、ブラウザを探さずに開けます。</p>
+            <button id="installApp" class="secondary-action" type="button">追加方法を見る</button>
+          </section>
+
+          <details class="section-block backup-block">
+            <summary>バックアップ</summary>
+            <p class="note">機種変更やバックアップ用です。必要な時だけ使います。</p>
+            <div class="backup-actions">
+              <button id="exportData" class="secondary-action" type="button">書き出す</button>
+              <label class="secondary-action file-action">
+                読み込む
+                <input id="importData" type="file" accept="application/json">
+              </label>
+            </div>
+            <textarea id="dataOutput" rows="5" readonly></textarea>
+          </details>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="アプリ画面">
+        <button class="active" data-view="home" type="button">今日</button>
+        <button data-view="capture" type="button">記録</button>
+        <button data-view="insight" type="button">分析</button>
+        <button data-view="settings" type="button">設定</button>
+      </nav>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="food-data.js?v=20260710-4"></script>
+    <script src="app.js?v=20260711-1"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./service-worker.js?v=20260710-14").catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>
