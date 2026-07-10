@@ -1,0 +1,29 @@
+.opening{position:fixed;inset:0;z-index:4000;pointer-events:none;overflow:hidden;background:#050609;animation:openingHide .01s linear 2.34s forwards}
+#openingCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.opening-grid{position:absolute;inset:-12%;z-index:0;opacity:.19;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:72px 72px;transform:perspective(900px) rotateX(64deg) translateY(28vh) scale(1.22);transform-origin:center bottom;animation:gridFall 1.5s cubic-bezier(.2,.8,.2,1) .15s both}
+.opening-title{position:absolute;left:50%;top:50%;z-index:2;transform:translate(-50%,-50%);font-family:Impact,"Arial Black",sans-serif;font-weight:900;line-height:.72;letter-spacing:-.07em;text-align:center;color:var(--paper);filter:drop-shadow(0 18px 40px rgba(0,0,0,.5));animation:titleExit .72s cubic-bezier(.7,0,.2,1) 1.14s forwards}
+.opening-title span{display:block;font-size:clamp(5.8rem,15vw,15rem);clip-path:inset(0 0 100% 0);animation:titleBuild .48s cubic-bezier(.16,1,.3,1) forwards}
+.opening-title span:nth-child(2){animation-delay:.1s}
+.opening-title small{display:block;margin-top:23px;color:var(--accent);font:800 clamp(.48rem,.8vw,.7rem) ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.24em;opacity:0;animation:captionIn .4s ease .38s forwards}
+.opening-panel{position:absolute;top:-12vh;bottom:-12vh;width:64vw;z-index:6;background:linear-gradient(145deg,#090c12,#030406 72%);box-shadow:0 0 150px rgba(0,0,0,.96)}
+.opening-panel.left{left:-13vw;clip-path:polygon(0 0,100% 0,76% 100%,0 100%);animation:openLeft 1.16s cubic-bezier(.78,0,.16,1) 1.18s forwards}
+.opening-panel.right{right:-13vw;clip-path:polygon(24% 0,100% 0,100% 100%,0 100%);animation:openRight 1.16s cubic-bezier(.78,0,.16,1) 1.18s forwards}
+.opening-cut{position:absolute;left:50%;top:-30vh;z-index:9;width:4px;height:162vh;opacity:0;transform:translateX(-50%) rotate(14deg) scaleY(0);transform-origin:center;background:linear-gradient(180deg,transparent,var(--accent) 15%,#fff 48%,var(--red) 83%,transparent);box-shadow:0 0 12px #fff,0 0 44px rgba(var(--accent-rgb),.88),0 0 92px rgba(255,82,111,.62);animation:cut .58s cubic-bezier(.18,.9,.2,1) .77s forwards}
+.opening-flare{position:absolute;left:50%;top:50%;z-index:8;width:28vw;height:170vh;opacity:0;transform:translate(-50%,-50%) rotate(14deg) scaleX(.04);background:radial-gradient(ellipse,rgba(255,255,255,.78),rgba(var(--accent-rgb),.18) 28%,rgba(255,82,111,.09) 46%,transparent 70%);filter:blur(24px);animation:flare .72s ease-out .82s forwards}
+.opening-shard{position:absolute;z-index:7;width:2px;height:120px;opacity:0;background:linear-gradient(transparent,#fff,var(--accent),transparent);box-shadow:0 0 20px rgba(var(--accent-rgb),.75)}
+.shard-a{left:44%;top:30%;transform:rotate(58deg);animation:shardA .7s ease-out .88s forwards}.shard-b{left:56%;top:54%;height:90px;transform:rotate(-44deg);animation:shardB .72s ease-out .9s forwards}.shard-c{left:48%;top:68%;height:70px;transform:rotate(82deg);animation:shardC .68s ease-out .94s forwards}
+.hero-copy,.portrait-stage{animation:heroResolve .95s cubic-bezier(.16,1,.3,1) 1.42s both}
+.portrait-stage{animation-name:visualResolve}
+@keyframes titleBuild{0%{clip-path:inset(0 0 100% 0);transform:translateY(34px);opacity:0}100%{clip-path:inset(0);transform:none;opacity:1}}
+@keyframes captionIn{to{opacity:1;letter-spacing:.18em}}
+@keyframes titleExit{to{opacity:0;transform:translate(-50%,-50%) scale(1.16);filter:blur(7px)}}
+@keyframes gridFall{0%{opacity:0;transform:perspective(900px) rotateX(64deg) translateY(45vh) scale(1.35)}100%{opacity:.19;transform:perspective(900px) rotateX(64deg) translateY(28vh) scale(1.22)}}
+@keyframes cut{0%{opacity:0;transform:translateX(-50%) rotate(14deg) scaleY(0)}12%{opacity:1}72%{opacity:1;transform:translateX(-50%) rotate(14deg) scaleY(1)}100%{opacity:0;transform:translateX(-50%) rotate(14deg) scaleY(1.06)}}
+@keyframes flare{0%{opacity:0;transform:translate(-50%,-50%) rotate(14deg) scaleX(.03)}26%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(14deg) scaleX(1.05)}}
+@keyframes shardA{0%{opacity:0;translate:0 0}20%{opacity:1}100%{opacity:0;translate:-180px -100px}}
+@keyframes shardB{0%{opacity:0;translate:0 0}20%{opacity:1}100%{opacity:0;translate:210px 130px}}
+@keyframes shardC{0%{opacity:0;translate:0 0}20%{opacity:.9}100%{opacity:0;translate:-120px 180px}}
+@keyframes openLeft{to{transform:translate3d(-118%,0,0) rotateY(-8deg)}}@keyframes openRight{to{transform:translate3d(118%,0,0) rotateY(8deg)}}@keyframes openingHide{to{visibility:hidden;opacity:0}}
+@keyframes heroResolve{0%{opacity:0;transform:translateX(-34px);filter:blur(8px)}100%{opacity:1;transform:none;filter:none}}
+@keyframes visualResolve{0%{opacity:0;transform:translateX(42px) scale(.96);filter:blur(10px)}100%{opacity:1;transform:none;filter:none}}
+@media(prefers-reduced-motion:reduce){.opening{display:none}.hero-copy,.portrait-stage{animation:none!important}}
