@@ -24,11 +24,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build direct static site
+      - name: Prepare static site
         run: |
           mkdir -p _site
-          cat payload/00.txt payload/01.txt payload/02.txt payload/03.txt payload/04.txt > _site/index.html
-          cp portrait.jpg _site/portrait.jpg
+          cp index.html _site/index.html
           cp posts.json _site/posts.json
           touch _site/.nojekyll
 
