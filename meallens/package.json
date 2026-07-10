@@ -1,0 +1,11 @@
+{
+  "name": "meallens-local-vision",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/food-matcher.test.mjs && node tests/food-resolution.test.mjs && node tests/static-integrity.test.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.2.0"
+  }
+}

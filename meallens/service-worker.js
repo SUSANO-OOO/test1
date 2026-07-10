@@ -1,12 +1,15 @@
-const CACHE_NAME = "meallens-v20260711-2";
+const CACHE_NAME = "meallens-v20260711-3";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css?v=20260711-1",
   "./food-data.js?v=20260711-1",
-  "./app.js?v=20260711-1",
+  "./food-matcher.js?v=20260711-1",
+  "./app.js?v=20260711-2",
   "./browser-vision.js?v=20260711-1",
   "./manifest.webmanifest",
+  "./icon-192.png",
+  "./icon-512.png",
   "./icon.svg"
 ];
 
@@ -33,6 +36,10 @@ self.addEventListener("fetch", (event) => {
       const copy = response.clone();
       caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
       return response;
-    }).catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html")))
+    }).catch(() => caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      if (event.request.mode === "navigate") return caches.match("./index.html");
+      return Response.error();
+    }))
   );
 });

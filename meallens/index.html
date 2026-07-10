@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#102420">
     <title>MealLens</title>
     <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="stylesheet" href="styles.css?v=20260711-1">
   </head>
   <body data-view="home">
@@ -28,7 +29,7 @@
             <div class="hero-copy">
               <span id="heroLabel" class="hero-label">今日の残り</span>
               <strong id="remainingCalories">--</strong>
-              <small id="targetCaption">目安設定を入れると、今日の残りが出ます</small>
+              <small id="targetCaption">1日の目安を設定すると、残りのカロリーが分かります</small>
             </div>
             <div class="hero-visual">
               <div id="calorieRing" class="calorie-ring" aria-label="今日の摂取カロリー進捗">
@@ -62,7 +63,7 @@
           <section class="section-block">
             <div class="section-title">
               <p class="eyebrow">きょう</p>
-              <h2>今日の食事ログ</h2>
+              <h2 id="mealLogTitle">今日の食事ログ</h2>
             </div>
             <div id="mealList" class="meal-list"></div>
           </section>
@@ -70,7 +71,7 @@
           <section class="section-block">
             <div class="section-title">
               <p class="eyebrow">つぎ</p>
-              <h2>次の食事の目安</h2>
+              <h2>次に食べるなら</h2>
             </div>
             <div id="nextSuggestion" class="suggestion-box"></div>
           </section>
@@ -111,8 +112,8 @@
             </div>
 
             <div id="visionPanel" class="vision-panel">
-              <span class="field-label">写真から食材候補を探す</span>
-              <div id="visionSummary" class="vision-summary">写真は端末内AIで解析します。初回だけ解析モデルの準備に時間がかかります。</div>
+              <span class="field-label">写真に写っている食材</span>
+              <div id="visionSummary" class="vision-summary">写真から食材の候補を出します。初回だけ解析モデルの準備に時間がかかります。</div>
               <div id="visionChips" class="vision-chips"></div>
               <div id="visionIngredientChoices" class="vision-ingredient-choices" hidden></div>
               <div id="visionBreakdown" class="vision-breakdown" hidden></div>
@@ -146,19 +147,19 @@
                   </div>
                   <button id="addIngredient" class="icon-button" type="button" aria-label="食材を追加" title="食材を追加">+</button>
                 </div>
-                <p class="field-help">食べた分の材料と量を入れると、写真の概算は使わず成分表から計算します。重さは生の状態を目安に入力してください。</p>
+                <p class="field-help">分かる食材と量を入力してください。「牛肉 100g」「卵2個」のようにまとめて入力できます。候補に生・ゆで・焼きの違いがある場合は、食べた状態に近いものを選びます。</p>
                 <div id="commonFoodChips" class="common-food-chips" aria-label="よく使う食材"></div>
                 <p id="foodDataSource" class="food-data-source"></p>
                 <div id="ingredientRows" class="ingredient-rows"></div>
                 <div id="ingredientEstimateNote" class="ingredient-estimate-note" aria-live="polite"></div>
-                <button id="estimateIngredients" class="secondary-action" type="button">材料から計算する</button>
+                <button id="estimateIngredients" class="secondary-action" type="button">計算結果を更新</button>
               </section>
 
               <details class="photo-only-options">
-                <summary>材料が分からないとき、写真だけで概算する</summary>
-                <p class="field-help">写真だけの場合に近い内容を選びます。材料を入力した場合は使いません。</p>
+                <summary>材料を入力しない場合</summary>
+                <p class="field-help">写真だけで記録するときは、近い食事と量を選んでください。</p>
                 <div>
-                  <span class="field-label">写真の内容に近いもの</span>
+                  <span class="field-label">近い食事</span>
                 <div id="mealTypeGroup" class="chip-grid" role="radiogroup" aria-label="食事タイプ">
                   <button class="chip active" data-type="setMeal" type="button">定食</button>
                   <button class="chip" data-type="riceBowl" type="button">丼・カレー</button>
@@ -181,7 +182,7 @@
               </div>
 
               <div>
-                <span class="field-label">写真の量</span>
+                <span class="field-label">食べた量の目安</span>
                 <div id="portionGroup" class="segmented" role="radiogroup" aria-label="量">
                   <button data-portion="light" type="button">軽め</button>
                   <button class="active" data-portion="normal" type="button">普通</button>
@@ -200,7 +201,7 @@
               </div>
 
               <div class="refine-card">
-                <span class="field-label">写真だけでは分からない点</span>
+                <span class="field-label">写真に写っていないもの</span>
                 <div class="refine-grid">
                   <label><input id="riceBoost" type="checkbox"> ご飯・麺を大盛りにした</label>
                   <label><input id="oilBoost" type="checkbox"> 油を多く使った</label>
@@ -209,7 +210,7 @@
                 </div>
               </div>
 
-              <button id="estimateMeal" class="primary-action" type="button">写真だけで概算する</button>
+              <button id="estimateMeal" class="primary-action" type="button">写真から目安を出す</button>
               </details>
             </div>
           </section>
@@ -217,9 +218,9 @@
           <section id="estimatePanel" class="section-block estimate-panel">
             <div class="section-title compact">
               <p class="eyebrow">数字</p>
-              <h2>この食事の見立て</h2>
+              <h2>カロリー・PFCの計算結果</h2>
             </div>
-            <div id="confidenceBadge" class="confidence-badge">写真から見立て</div>
+            <div id="confidenceBadge" class="confidence-badge">写真からの目安</div>
             <div class="macro-grid">
               <label>
                 kcal
@@ -239,10 +240,6 @@
               </label>
             </div>
             <div id="nutritionReview" class="nutrition-review" aria-live="polite"></div>
-            <div class="api-box">
-              <p class="note">栄養データは参考用。写真の見立てから大きく外れる値は入れません。</p>
-              <button id="lookupUsda" class="secondary-action" type="button">栄養データでならす</button>
-            </div>
             <label>
               メモ
               <textarea id="mealMemo" rows="3" placeholder="外食だった、量が多かった、残した、など"></textarea>
@@ -258,8 +255,8 @@
               <h2>食事ログの推移</h2>
             </div>
             <div class="segmented analysis-switch">
-              <button class="active" data-range="week" type="button">週</button>
-              <button data-range="month" type="button">月</button>
+              <button class="active" data-range="week" type="button">直近7日</button>
+              <button data-range="month" type="button">直近30日</button>
             </div>
             <div id="analysisStats" class="analysis-stats"></div>
             <div id="analysisChart" class="week-chart"></div>
@@ -267,8 +264,8 @@
 
           <section class="section-block">
             <div class="section-title">
-              <p class="eyebrow">読み取り</p>
-              <h2 id="analysisTitle">今週の見方</h2>
+              <p class="eyebrow">傾向</p>
+              <h2 id="analysisTitle">直近7日の傾向</h2>
             </div>
             <div id="analysisInsight" class="suggestion-box"></div>
           </section>
@@ -344,8 +341,8 @@
 
           <section class="section-block install-card">
             <div class="section-title">
-              <p class="eyebrow">アプリ化</p>
-              <h2>アプリとして使う</h2>
+              <p class="eyebrow">ホーム画面</p>
+              <h2>アプリとして追加</h2>
             </div>
             <p id="installStatus" class="install-status">ホーム画面に追加すると、ブラウザを探さずに開けます。</p>
             <button id="installApp" class="secondary-action" type="button">追加方法を見る</button>
@@ -376,11 +373,12 @@
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script src="food-data.js?v=20260711-1"></script>
-    <script src="app.js?v=20260711-1"></script>
+    <script src="food-matcher.js?v=20260711-1"></script>
+    <script src="app.js?v=20260711-2"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("./service-worker.js?v=20260711-2").catch(() => {});
+          navigator.serviceWorker.register("./service-worker.js?v=20260711-3").catch(() => {});
         });
       }
     </script>
