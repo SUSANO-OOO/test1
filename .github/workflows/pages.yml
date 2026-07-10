@@ -23,12 +23,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Build direct static site
+        run: |
+          mkdir -p _site
+          cat payload/00.txt payload/01.txt payload/02.txt payload/03.txt payload/04.txt > _site/index.html
+          cp portrait.jpg _site/portrait.jpg
+          cp posts.json _site/posts.json
+          touch _site/.nojekyll
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
+
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
