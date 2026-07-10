@@ -1,0 +1,1 @@
+(()=>{const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;const finish=()=>document.body.classList.add('intro-complete');if(reduced){finish();return;}addEventListener('DOMContentLoaded',()=>{setTimeout(finish,1150)},{once:true});setTimeout(finish,1700);})();
