@@ -1,5 +1,5 @@
 (()=>{
-  const PORTRAIT='./portrait.jpg?v=20260711-4';
+  const PORTRAIT='./portrait.webp?v=20260711-1';
   window.PORTRAIT=PORTRAIT;
   window.PAOPAO_PORTRAIT=PORTRAIT;
 
