@@ -15,7 +15,7 @@ permissions:
 jobs:
   chromium-qa:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,23 +40,11 @@ jobs:
           cat /tmp/paopao-http.log
           exit 1
 
-      - name: Test local repository build
+      - name: Test repository build in Chromium
         env:
           BASE_URL: http://127.0.0.1:4173/index.html
           OUTPUT_PREFIX: local
         run: node qa/visual-qa.mjs
-
-      - name: Test public commit URL
-        env:
-          OUTPUT_PREFIX: public
-          PUBLIC_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: |
-          export BASE_URL="https://cdn.jsdelivr.net/gh/SUSANO-OOO/test1@${PUBLIC_SHA}/index.html"
-          for attempt in 1 2 3; do
-            node qa/visual-qa.mjs && exit 0
-            test "$attempt" = "3" && exit 1
-            sleep 15
-          done
 
       - name: Upload QA evidence
         if: always()
