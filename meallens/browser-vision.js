@@ -21,6 +21,12 @@ const ingredientLabels = [
 
 let runtimePromise;
 let classifierPromise;
+const analysisCache = new Map();
+
+function getImageCacheKey(imageDataUrl) {
+  const value = String(imageDataUrl || "");
+  return `${value.length}:${value.slice(0, 48)}:${value.slice(-64)}`;
+}
 
 function report(callback, message, progress = null) {
   callback?.({ message, progress });
@@ -119,6 +125,11 @@ function mergeResults(viewResults) {
 }
 
 export async function analyzeMealPhoto(imageDataUrl, onProgress) {
+  const cacheKey = getImageCacheKey(imageDataUrl);
+  if (analysisCache.has(cacheKey)) {
+    report(onProgress, "前回の解析結果を読み込みました", 100);
+    return structuredClone(analysisCache.get(cacheKey));
+  }
   report(onProgress, "端末内AIを起動しています");
   const [{ RawImage }, classifier] = await Promise.all([getRuntime(), getClassifier(onProgress)]);
   const image = await RawImage.fromURL(imageDataUrl);
@@ -139,11 +150,14 @@ export async function analyzeMealPhoto(imageDataUrl, onProgress) {
   })).filter((item, index, items) => items.findIndex((other) => other.name === item.name) === index);
 
   report(onProgress, "食材候補をまとめています", 100);
-  return {
+  const analysis = {
     summary: ingredients.length
       ? "写真全体と各領域を端末内AIで確認しました。候補を選び、食べた量を入力してください。"
       : "写真から食材を絞り込めませんでした。材料名を入力してください。",
     dishes: [],
     ingredients
   };
+  analysisCache.set(cacheKey, analysis);
+  if (analysisCache.size > 8) analysisCache.delete(analysisCache.keys().next().value);
+  return structuredClone(analysis);
 }

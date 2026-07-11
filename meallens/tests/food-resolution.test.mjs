@@ -51,4 +51,29 @@ const unknown = api.estimateIngredientList([{ name: "存在しない食材xyz", 
 assert.equal(unknown.matched.length, 0);
 assert.equal(unknown.unmatched.length, 1);
 
+const unsafeMeal = api.normalizeMealRecord({
+  id: '\"><img src=x>',
+  date: "invalid",
+  name: "テスト料理",
+  photo: 'https://example.com/track.jpg',
+  calories: "not-a-number",
+  vision: { summary: "確認", signals: ["<img src=x onerror=alert(1)>"] }
+});
+assert.match(unsafeMeal.id, /^[A-Za-z0-9._:-]+$/);
+assert.equal(unsafeMeal.photo, "");
+assert.equal(unsafeMeal.calories, 0);
+assert.equal(unsafeMeal.vision.signals[0], "<img src=x onerror=alert(1)>");
+
+const normalizedState = api.normalizeStateData({
+  selectedMealType: "unknown",
+  analysisRange: "invalid",
+  profile: { sex: "invalid", age: 999, height: 10, weight: -2, pace: "invalid" },
+  meals: [unsafeMeal]
+});
+assert.equal(normalizedState.selectedMealType, "setMeal");
+assert.equal(normalizedState.analysisRange, "week");
+assert.equal(normalizedState.profile.age, 99);
+assert.equal(normalizedState.profile.height, 120);
+assert.equal(normalizedState.profile.weight, 30);
+
 console.log("food-resolution: ok");

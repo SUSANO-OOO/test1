@@ -4,16 +4,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#102420">
+    <meta name="description" content="食事写真と食材からカロリー・PFCを記録できるスマホ向け食事管理アプリ">
     <title>MealLens</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260711-1">
+    <link rel="stylesheet" href="styles.css?v=20260711-3">
   </head>
   <body data-view="home">
     <div class="mobile-shell">
       <header class="app-header">
-        <div>
-          <p class="eyebrow">MealLens</p>
+        <div class="header-main">
+          <div class="brand-lockup">
+            <img src="icon-192.png" alt="" width="38" height="38">
+            <span>MealLens<small>食事記録</small></span>
+          </div>
           <h1 id="appTitle">今日の残り</h1>
           <p id="appLead" class="lead">写真で記録した食事から、残りカロリーとたんぱく質を見ます。</p>
         </div>
@@ -32,6 +36,11 @@
               <small id="targetCaption">1日の目安を設定すると、残りのカロリーが分かります</small>
             </div>
             <div class="hero-visual">
+              <div class="meal-orbit" aria-hidden="true">
+                <span class="food-token food-token-rice"><i></i></span>
+                <span class="food-token food-token-leaf"><i></i></span>
+                <span class="food-token food-token-egg"><i></i></span>
+              </div>
               <div id="calorieRing" class="calorie-ring" aria-label="今日の摂取カロリー進捗">
                 <span id="caloriePercent">0%</span>
                 <small>摂取</small>
@@ -42,7 +51,10 @@
                 <i></i>
               </div>
             </div>
-            <button id="goCaptureHero" class="camera-button" type="button">食事を記録する</button>
+            <button id="goCaptureHero" class="camera-button" type="button">
+              <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3h5Z"/><circle cx="12" cy="13" r="3"/></svg>
+              食事を記録する
+            </button>
           </section>
 
           <section class="mini-metrics" aria-label="今日の概要">
@@ -93,6 +105,16 @@
 
             <div class="photo-drop" aria-live="polite">
               <img id="photoPreview" alt="">
+              <div class="photo-placeholder" aria-hidden="true">
+                <div class="capture-object">
+                  <span class="capture-lens"></span>
+                  <i class="produce-object produce-green"></i>
+                  <i class="produce-object produce-red"></i>
+                  <i class="produce-object produce-protein"></i>
+                </div>
+                <strong>今日のひと皿を写す</strong>
+                <small>写真を選ぶか、カメラで撮影</small>
+              </div>
               <button id="changePhoto" class="photo-change-button" type="button" hidden>写真を変更</button>
               <div class="photo-scan" aria-hidden="true">
                 <i></i>
@@ -102,18 +124,18 @@
 
             <div class="photo-actions">
               <label class="real-file-action library-action">
-                <span>写真から選ぶ</span>
+                <span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>写真から選ぶ</span>
                 <input id="libraryPhoto" type="file" accept="image/*">
               </label>
               <label class="real-file-action camera-action">
-                <span>カメラで撮る</span>
+                <span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3h5Z"/><circle cx="12" cy="13" r="3"/></svg>カメラで撮る</span>
                 <input id="cameraPhoto" type="file" accept="image/*" capture="environment">
               </label>
             </div>
 
             <div id="visionPanel" class="vision-panel">
               <span class="field-label">写真に写っている食材</span>
-              <div id="visionSummary" class="vision-summary">写真から食材の候補を出します。初回だけ解析モデルの準備に時間がかかります。</div>
+              <div id="visionSummary" class="vision-summary">初回は写真解析の準備に時間がかかります。写真自体は外部へ送信しません。</div>
               <div id="visionChips" class="vision-chips"></div>
               <div id="visionIngredientChoices" class="vision-ingredient-choices" hidden></div>
               <div id="visionBreakdown" class="vision-breakdown" hidden></div>
@@ -364,21 +386,21 @@
       </main>
 
       <nav class="bottom-nav" aria-label="アプリ画面">
-        <button class="active" data-view="home" type="button">今日</button>
-        <button data-view="capture" type="button">記録</button>
-        <button data-view="insight" type="button">分析</button>
-        <button data-view="settings" type="button">設定</button>
+        <button class="active" data-view="home" type="button" aria-current="page"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg><b>今日</b></button>
+        <button data-view="capture" type="button"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3h5Z"/><circle cx="12" cy="13" r="3"/></svg><b>記録</b></button>
+        <button data-view="insight" type="button"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg><b>分析</b></button>
+        <button data-view="settings" type="button"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.1a1.7 1.7 0 0 0-.4-1.1 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 3.8 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2V9.6h.1a1.7 1.7 0 0 0 1.1-.4 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8.2 3.8a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2h4v.1a1.7 1.7 0 0 0 .4 1.1 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 8.2a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.1v4h-.1a1.7 1.7 0 0 0-1.1.4 1.7 1.7 0 0 0-.6 1Z"/></svg><b>設定</b></button>
       </nav>
     </div>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script src="food-data.js?v=20260711-1"></script>
     <script src="food-matcher.js?v=20260711-1"></script>
-    <script src="app.js?v=20260711-2"></script>
+    <script src="app.js?v=20260711-4"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("./service-worker.js?v=20260711-3").catch(() => {});
+          navigator.serviceWorker.register("./service-worker.js?v=20260711-5", { updateViaCache: "none" }).catch(() => {});
         });
       }
     </script>
