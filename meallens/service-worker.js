@@ -1,11 +1,11 @@
-const CACHE_NAME = "meallens-v20260711-5";
+const CACHE_NAME = "meallens-v20260711-6";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=20260711-3",
+  "./styles.css?v=20260711-4",
   "./food-data.js?v=20260711-1",
   "./food-matcher.js?v=20260711-1",
-  "./app.js?v=20260711-4",
+  "./app.js?v=20260711-5",
   "./browser-vision.js?v=20260711-2",
   "./manifest.webmanifest",
   "./icon-192.png",

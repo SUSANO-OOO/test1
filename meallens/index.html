@@ -8,7 +8,7 @@
     <title>MealLens</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260711-3">
+    <link rel="stylesheet" href="styles.css?v=20260711-4">
   </head>
   <body data-view="home">
     <div class="mobile-shell">
@@ -396,11 +396,11 @@
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script src="food-data.js?v=20260711-1"></script>
     <script src="food-matcher.js?v=20260711-1"></script>
-    <script src="app.js?v=20260711-4"></script>
+    <script src="app.js?v=20260711-5"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("./service-worker.js?v=20260711-5", { updateViaCache: "none" }).catch(() => {});
+          navigator.serviceWorker.register("./service-worker.js?v=20260711-6", { updateViaCache: "none" }).catch(() => {});
         });
       }
     </script>
