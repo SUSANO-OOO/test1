@@ -1,4 +1,6 @@
 import { chromium } from 'playwright';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 const baseUrl = process.env.BASE_URL || 'http://127.0.0.1:4173/index.html';
 const browser = await chromium.launch({ headless: true });
@@ -21,5 +23,11 @@ const state = await page.evaluate(() => {
     siteVersion: document.documentElement.dataset.siteVersion || null,
   };
 });
+await fs.mkdir(path.resolve('qa-artifacts'), { recursive: true });
+await fs.writeFile(
+  path.resolve('qa-artifacts/runtime-state.json'),
+  JSON.stringify(state, null, 2),
+  'utf8',
+);
 console.log('PAOPAO_RUNTIME_STATE=' + JSON.stringify(state));
 await browser.close();
