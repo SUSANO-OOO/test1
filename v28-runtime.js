@@ -225,15 +225,16 @@
       timer=setTimeout(draw,34);
     };
     const startCanvas=()=>{if(!timer)draw()};
-    if(document.body.classList.contains('intro-complete'))startCanvas();
+    const opening=document.querySelector('#opening');
+    if(!opening||opening.classList.contains('done'))startCanvas();
     else{
       const introObserver=new MutationObserver(()=>{
-        if(!document.body.classList.contains('intro-complete'))return;
+        if(!opening.classList.contains('done'))return;
         introObserver.disconnect();
         startCanvas();
       });
-      introObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
-      setTimeout(()=>{introObserver.disconnect();startCanvas()},2800);
+      introObserver.observe(opening,{attributes:true,attributeFilter:['class']});
+      setTimeout(()=>{introObserver.disconnect();startCanvas()},2750);
     }
     addEventListener('pagehide',()=>clearTimeout(timer),{once:true});
   }
