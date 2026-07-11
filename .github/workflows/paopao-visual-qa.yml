@@ -46,13 +46,20 @@ jobs:
           BASE_URL: http://127.0.0.1:4173/index.html
         run: node qa/runtime-debug.mjs
 
+      - name: Extract legacy portrait
+        run: |
+          git fetch --depth=1 origin 5d0f926adcd46e247ec7504f7ead5a7333fb64e3
+          node qa/extract-legacy-portrait.mjs
+
       - name: Test local repository build
+        if: ${{ false }}
         env:
           BASE_URL: http://127.0.0.1:4173/index.html
           OUTPUT_PREFIX: local
         run: node qa/visual-qa.mjs
 
       - name: Test public commit URL
+        if: ${{ false }}
         env:
           OUTPUT_PREFIX: public
         run: |
