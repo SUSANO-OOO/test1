@@ -87,6 +87,7 @@ for(const viewport of viewports){
         scriptResourceCount:scriptResources.length,
         scriptTransferBytes:scriptResources.reduce((total,entry)=>total+entry.transferSize,0),
         scriptEncodedBytes:scriptResources.reduce((total,entry)=>total+entry.encodedBodySize,0),
+        openingCanvasCount:document.querySelectorAll('#openingCanvas').length,
         systemCanvasCount:document.querySelectorAll('#systemCanvas').length,
         canvasCount:document.querySelectorAll('canvas').length,
         longTasks:window.__PAOPAO_LONG_TASKS__||[],
@@ -96,12 +97,13 @@ for(const viewport of viewports){
     });
 
     if(result.readyMs>3000)throw new Error(`${viewport.name}: V29 ready took ${Math.round(result.readyMs)}ms`);
-    if(result.openingFrames.count<35)throw new Error(`${viewport.name}: too few animation frames (${result.openingFrames.count})`);
+    if(result.openingFrames.p95GapMs>200)throw new Error(`${viewport.name}: animation frame pacing p95 was ${Math.round(result.openingFrames.p95GapMs)}ms`);
     if(result.openingFrames.maxGapMs>250)throw new Error(`${viewport.name}: animation stalled for ${Math.round(result.openingFrames.maxGapMs)}ms`);
     if(result.routeTransitionMs>1200)throw new Error(`${viewport.name}: route transition took ${result.routeTransitionMs}ms`);
     if(result.runtime.externalScripts.length)throw new Error(`${viewport.name}: external scripts remain: ${result.runtime.externalScripts.join(', ')}`);
     if(result.runtime.rawGithackScripts.length)throw new Error(`${viewport.name}: raw.githack runtime remains`);
     if(result.runtime.duplicateScripts.length)throw new Error(`${viewport.name}: duplicate scripts: ${result.runtime.duplicateScripts.join(', ')}`);
+    if(result.runtime.openingCanvasCount!==0)throw new Error(`${viewport.name}: unstable opening canvas remains`);
     if(result.runtime.systemCanvasCount!==(viewport.expectsSystemCanvas?1:0)){
       throw new Error(`${viewport.name}: unexpected system canvas count ${result.runtime.systemCanvasCount}`);
     }
