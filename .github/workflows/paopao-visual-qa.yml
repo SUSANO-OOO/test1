@@ -24,7 +24,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install Playwright Chromium
         run: |
@@ -40,6 +40,11 @@ jobs:
           done
           cat /tmp/paopao-http.log
           exit 1
+
+      - name: Inspect active runtime
+        env:
+          BASE_URL: http://127.0.0.1:4173/index.html
+        run: node qa/runtime-debug.mjs
 
       - name: Test local repository build
         env:
