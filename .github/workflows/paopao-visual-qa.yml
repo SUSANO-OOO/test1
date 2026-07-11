@@ -40,11 +40,6 @@ jobs:
           cat /tmp/paopao-http.log
           exit 1
 
-      - name: Inspect runtime bootstrap
-        env:
-          BASE_URL: http://127.0.0.1:4173/index.html
-        run: node qa/runtime-debug.mjs
-
       - name: Test repository build in Chromium
         env:
           BASE_URL: http://127.0.0.1:4173/index.html
@@ -52,7 +47,6 @@ jobs:
         run: node qa/visual-qa.mjs
 
       - name: Test runtime performance and animation
-        if: always()
         env:
           BASE_URL: http://127.0.0.1:4173/index.html
         run: node qa/performance-qa.mjs
