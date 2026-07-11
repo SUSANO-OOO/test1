@@ -224,7 +224,17 @@
       tick++;
       timer=setTimeout(draw,34);
     };
-    draw();
+    const startCanvas=()=>{if(!timer)draw()};
+    if(document.body.classList.contains('intro-complete'))startCanvas();
+    else{
+      const introObserver=new MutationObserver(()=>{
+        if(!document.body.classList.contains('intro-complete'))return;
+        introObserver.disconnect();
+        startCanvas();
+      });
+      introObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
+      setTimeout(()=>{introObserver.disconnect();startCanvas()},2800);
+    }
     addEventListener('pagehide',()=>clearTimeout(timer),{once:true});
   }
 
