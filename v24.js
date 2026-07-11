@@ -2,54 +2,6 @@
   if(window.__PAOPAO_BOOTSTRAP__)return;
   window.__PAOPAO_BOOTSTRAP__=true;
 
-  const installFrameBudget=()=>{
-    if(window.__PAOPAO_FRAME_BUDGET__)return;
-    window.__PAOPAO_FRAME_BUDGET__=true;
-    const nativeRequest=window.requestAnimationFrame.bind(window);
-    const nativeCancel=window.cancelAnimationFrame.bind(window);
-    const tasks=new Map();
-    let sequence=0;
-
-    const intervalFor=callback=>{
-      const name=callback?.name||'';
-      if(name==='drawAmbient')return 50;
-      if(name==='drawCursor')return 34;
-      if(name==='drawOpening'&&innerWidth<=1100)return 34;
-      return 0;
-    };
-
-    window.requestAnimationFrame=callback=>{
-      const id=-(++sequence);
-      const interval=intervalFor(callback);
-      const state={cancelled:false,nativeId:0,last:0};
-      const tick=timestamp=>{
-        if(state.cancelled)return;
-        if(interval&&state.last&&timestamp-state.last<interval){
-          state.nativeId=nativeRequest(tick);
-          return;
-        }
-        state.last=timestamp;
-        tasks.delete(id);
-        callback(timestamp);
-      };
-      state.nativeId=nativeRequest(tick);
-      tasks.set(id,state);
-      return id;
-    };
-
-    window.cancelAnimationFrame=id=>{
-      const state=tasks.get(id);
-      if(state){
-        state.cancelled=true;
-        nativeCancel(state.nativeId);
-        tasks.delete(id);
-        return;
-      }
-      nativeCancel(id);
-    };
-  };
-  installFrameBudget();
-
   const addStyle=href=>{
     if(document.querySelector(`link[href="${href}"]`))return;
     const link=document.createElement('link');
