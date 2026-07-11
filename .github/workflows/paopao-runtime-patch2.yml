@@ -1,0 +1,79 @@
+name: PAOPAO final intro scheduling patch
+
+on:
+  push:
+    branches:
+      - agent/optimize-paopao-runtime
+    paths:
+      - .github/workflows/paopao-runtime-patch2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/optimize-paopao-runtime
+          fetch-depth: 0
+
+      - name: Delay persistent canvases until intro completes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          v25_path=Path('v25-core.js')
+          v25=v25_path.read_text(encoding='utf-8')
+          replacements={
+            "const sparks=Array.from({length:innerWidth<700?28:innerWidth<1100?42:64}":"const sparks=Array.from({length:innerWidth<700?20:innerWidth<1100?30:40}",
+            "resizeAmbient();addEventListener('resize',resizeAmbient,{passive:true});drawAmbient();":"resizeAmbient();addEventListener('resize',resizeAmbient,{passive:true});if(reduced||skipIntro)drawAmbient();else setTimeout(drawAmbient,2650);",
+            "if(!reduced)drawCursor();":"if(!reduced){if(skipIntro)drawCursor();else setTimeout(drawCursor,2650)};"
+          }
+          for old,new in replacements.items():
+            if old not in v25:
+              raise SystemExit(f'Missing V25 fragment: {old}')
+            v25=v25.replace(old,new,1)
+          v25_path.write_text(v25,encoding='utf-8')
+
+          v28_path=Path('v28-runtime.js')
+          v28=v28_path.read_text(encoding='utf-8')
+          old="""    const startCanvas=()=>{if(!timer)draw()};
+              if(document.body.classList.contains('intro-complete'))startCanvas();
+              else{
+                const introObserver=new MutationObserver(()=>{
+                  if(!document.body.classList.contains('intro-complete'))return;
+                  introObserver.disconnect();
+                  startCanvas();
+                });
+                introObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
+                setTimeout(()=>{introObserver.disconnect();startCanvas()},2800);
+              }
+              addEventListener('pagehide',()=>clearTimeout(timer),{once:true});"""
+          new="""    const startCanvas=()=>{if(!timer)draw()};
+              const opening=document.querySelector('#opening');
+              if(!opening||opening.classList.contains('done'))startCanvas();
+              else{
+                const introObserver=new MutationObserver(()=>{
+                  if(!opening.classList.contains('done'))return;
+                  introObserver.disconnect();
+                  startCanvas();
+                });
+                introObserver.observe(opening,{attributes:true,attributeFilter:['class']});
+                setTimeout(()=>{introObserver.disconnect();startCanvas()},2750);
+              }
+              addEventListener('pagehide',()=>clearTimeout(timer),{once:true});"""
+          if old not in v28:
+            raise SystemExit('Missing V28 intro scheduling block')
+          v28_path.write_text(v28.replace(old,new,1),encoding='utf-8')
+          PY
+
+      - name: Commit runtime scheduling changes
+        run: |
+          git config user.name "PAOPAO Runtime Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add v25-core.js v28-runtime.js
+          git diff --cached --quiet && exit 0
+          git commit -m "Delay persistent canvases until intro completion"
+          git push origin HEAD:agent/optimize-paopao-runtime
