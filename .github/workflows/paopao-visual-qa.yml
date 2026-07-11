@@ -1,0 +1,65 @@
+name: PAOPAO visual QA
+
+on:
+  push:
+    branches:
+      - main
+      - agent/fix-paopao-portrait
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chromium-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Start local site
+        run: |
+          python3 -m http.server 4173 > /tmp/paopao-http.log 2>&1 &
+          for attempt in 1 2 3 4 5; do
+            curl --fail --silent http://127.0.0.1:4173/index.html > /dev/null && exit 0
+            sleep 2
+          done
+          cat /tmp/paopao-http.log
+          exit 1
+
+      - name: Test local repository build
+        env:
+          BASE_URL: http://127.0.0.1:4173/index.html
+          OUTPUT_PREFIX: local
+        run: node qa/visual-qa.mjs
+
+      - name: Test public commit URL
+        env:
+          OUTPUT_PREFIX: public
+        run: |
+          export BASE_URL="https://raw.githack.com/SUSANO-OOO/test1/${GITHUB_SHA}/index.html"
+          for attempt in 1 2 3; do
+            node qa/visual-qa.mjs && exit 0
+            test "$attempt" = "3" && exit 1
+            sleep 15
+          done
+
+      - name: Upload QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paopao-visual-qa-${{ github.sha }}
+          path: qa-artifacts
+          if-no-files-found: error
+          retention-days: 14
