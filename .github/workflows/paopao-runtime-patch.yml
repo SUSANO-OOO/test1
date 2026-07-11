@@ -1,0 +1,33 @@
+name: PAOPAO one-time runtime patch
+
+on:
+  push:
+    branches:
+      - agent/optimize-paopao-runtime
+    paths:
+      - .github/workflows/paopao-runtime-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/optimize-paopao-runtime
+          fetch-depth: 0
+
+      - name: Apply targeted performance patch
+        run: python3 qa/patch-runtime-performance.py
+
+      - name: Commit patched runtime
+        run: |
+          git config user.name "PAOPAO Runtime Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add v25-core.js v28-runtime.js
+          git diff --cached --quiet && exit 0
+          git commit -m "Optimize opening and persistent canvas rendering"
+          git push origin HEAD:agent/optimize-paopao-runtime
