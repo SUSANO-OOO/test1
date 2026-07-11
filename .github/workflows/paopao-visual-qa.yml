@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - agent/fix-paopao-portrait
   pull_request:
     branches:
       - main
@@ -41,30 +40,13 @@ jobs:
           cat /tmp/paopao-http.log
           exit 1
 
-      - name: Inspect active runtime
-        env:
-          BASE_URL: http://127.0.0.1:4173/index.html
-        run: node qa/runtime-debug.mjs
-
-      - name: Compare portrait history
-        run: |
-          git fetch --depth=1 origin \
-            b8f2347f22a71aa2e93ab9fe1b232a5485dc45d5 \
-            6e36fbc262062e71e0139d50531dfdcac97bd72c \
-            009ce17e3339122cfc69873592fb9ab93b964715 \
-            d1117183e77b46b4dfda10b4ab5312ace2ddb653 \
-            5d0f926adcd46e247ec7504f7ead5a7333fb64e3
-          node qa/extract-legacy-portrait.mjs
-
       - name: Test local repository build
-        if: ${{ false }}
         env:
           BASE_URL: http://127.0.0.1:4173/index.html
           OUTPUT_PREFIX: local
         run: node qa/visual-qa.mjs
 
       - name: Test public commit URL
-        if: ${{ false }}
         env:
           OUTPUT_PREFIX: public
         run: |
