@@ -13,13 +13,7 @@
   const loadOnce=src=>{
     const absolute=new URL(src,location.href).href;
     const existing=[...document.scripts].find(script=>script.src===absolute);
-    if(existing){
-      if(existing.dataset.loaded==='true')return Promise.resolve();
-      return new Promise((resolve,reject)=>{
-        existing.addEventListener('load',resolve,{once:true});
-        existing.addEventListener('error',()=>reject(new Error(`Failed to load ${src}`)),{once:true});
-      });
-    }
+    if(existing)return Promise.resolve();
     return new Promise((resolve,reject)=>{
       const script=document.createElement('script');
       script.src=src;
