@@ -73,7 +73,6 @@ for (const viewport of viewports) {
       return Boolean(image?.complete && image.naturalWidth > 0 && image.naturalHeight > 0);
     }, { timeout: 30000 });
 
-    // The opening animation is intentionally present. Wait until it stops obscuring the page.
     await sleep(4500);
 
     viewportResult.portrait = await page.evaluate(async () => {
@@ -96,7 +95,7 @@ for (const viewport of viewports) {
         naturalHeight: image?.naturalHeight || 0,
         complete: Boolean(image?.complete),
         usesDataUrl: Boolean((image?.currentSrc || image?.getAttribute('src') || '').startsWith('data:')),
-        usesRepositoryFile: /portrait\.jpg(?:\?|$)/.test(image?.currentSrc || image?.getAttribute('src') || ''),
+        usesRepositoryFile: /portrait\.(?:webp|jpe?g|png)(?:\?|$)/i.test(image?.currentSrc || image?.getAttribute('src') || ''),
       };
     });
 
@@ -104,7 +103,7 @@ for (const viewport of viewports) {
       throw new Error(`${viewport.name}: portrait did not decode`);
     }
     if (viewportResult.portrait.usesDataUrl || !viewportResult.portrait.usesRepositoryFile) {
-      throw new Error(`${viewport.name}: portrait is not loaded from portrait.jpg`);
+      throw new Error(`${viewport.name}: portrait is not loaded from a repository image file`);
     }
     if (viewportResult.portrait.visibleCount !== 1) {
       throw new Error(`${viewport.name}: expected one visible portrait, got ${viewportResult.portrait.visibleCount}`);
