@@ -46,6 +46,21 @@ jobs:
             --exclude='_site' \
             --exclude='deployment-status.json' \
             ./ _site/
+
+          cat \
+            assets/portrait.b64.part1 \
+            assets/portrait.b64.part2 \
+            assets/portrait.b64.part3 \
+            assets/portrait.b64.part4 \
+            | base64 --decode > _site/portrait.webp
+
+          echo "2806b0d0090aa2a08fab840c2d288208352b5cc3219e3479789c47aa0865eca9  _site/portrait.webp" \
+            | sha256sum --check --strict
+
+          rm -f _site/assets/portrait.b64.part1 \
+            _site/assets/portrait.b64.part2 \
+            _site/assets/portrait.b64.part3 \
+            _site/assets/portrait.b64.part4
           touch _site/.nojekyll
 
       - name: Upload Pages artifact
