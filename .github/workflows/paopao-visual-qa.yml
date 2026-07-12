@@ -25,6 +25,17 @@ jobs:
         with:
           node-version: 24
 
+      - name: Assemble optimized portrait
+        run: |
+          cat \
+            assets/portrait.b64.part1 \
+            assets/portrait.b64.part2 \
+            assets/portrait.b64.part3 \
+            assets/portrait.b64.part4 \
+            | base64 --decode > portrait.webp
+          echo "2806b0d0090aa2a08fab840c2d288208352b5cc3219e3479789c47aa0865eca9  portrait.webp" \
+            | sha256sum --check --strict
+
       - name: Install Playwright Chromium
         run: |
           npm install --no-save playwright
