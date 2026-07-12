@@ -1,5 +1,5 @@
 (()=>{
-  const PORTRAIT='./portrait.webp?v=20260711-1';
+  const PORTRAIT='./portrait.webp?v=20260712-1';
   window.PORTRAIT=PORTRAIT;
   window.PAOPAO_PORTRAIT=PORTRAIT;
 
@@ -11,7 +11,7 @@
   const apply=()=>{
     document.querySelectorAll('img[data-photo]').forEach(img=>{
       if(img.getAttribute('src')!==PORTRAIT)img.src=PORTRAIT;
-      img.alt='パオパオのプロフィール画像';
+      img.alt='パオパオ塾のプロフィール画像';
       img.decoding='async';
       img.loading='eager';
     });
