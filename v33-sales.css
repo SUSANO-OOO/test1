@@ -4,7 +4,7 @@
 .hero h1 span{display:block}
 .hero h1 .hero-emphasis{font-size:.72em;line-height:1.18;margin-top:.16em;color:var(--blue);-webkit-text-stroke:0;text-shadow:none;letter-spacing:-.055em;white-space:nowrap}
 .hero-lead{max-width:760px}
-.monitor-note{max-width:760px;padding-left:16px;border-left:3px solid var(--red);color:var(--ink-soft)}
+.monitor-note{max-width:760px;padding-left:16px;border-left:3px solid var(--orange);color:var(--ink-soft)}
 .monitor-note strong{color:var(--ink)}
 
 .comparison-table{display:grid;margin-top:24px;border:1px solid rgba(255,255,255,.2);border-radius:20px;overflow:hidden;background:rgba(255,255,255,.04)}
@@ -26,7 +26,7 @@
 
 .included-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
 .included-grid article{padding:19px 20px;border:1px solid var(--line);border-radius:16px;background:var(--paper)}
-.included-grid small{display:block;color:var(--red);font-size:11px;font-weight:900;letter-spacing:.08em;margin-bottom:5px}
+.included-grid small{display:block;color:var(--orange);font-size:11px;font-weight:900;letter-spacing:.08em;margin-bottom:5px}
 .included-grid strong{font-size:15px}
 
 .discovery{background:#101725;color:#fff}
@@ -74,7 +74,19 @@
 .simple-panel ul{padding-left:20px}
 .simple-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
 
+/* Human screenshot corrections: no overlap, no one-character orphan lines. */
+.hero h1,.section-heading h2,.contact-copy h2,.discovery-copy h2{word-break:normal;line-break:strict;overflow-wrap:normal;text-wrap:balance}
+@media(min-width:1101px){
+  .hero-grid{grid-template-columns:minmax(0,.94fr) minmax(500px,1.06fr);gap:54px}
+  .hero h1{font-size:58px;line-height:1.08;letter-spacing:-.05em}
+  .hero h1 .hero-emphasis{font-size:.78em;white-space:normal;max-width:620px}
+  .makeover .section-heading h2{font-size:48px;line-height:1.16;letter-spacing:-.04em}
+  .discovery-copy h2{font-size:56px;line-height:1.12;letter-spacing:-.045em}
+  .contact-copy h2{font-size:52px;line-height:1.14;letter-spacing:-.04em}
+}
+
 @media(max-width:1100px){
+  .hero h1{font-size:62px;line-height:1.08}
   .hero h1 .hero-emphasis{white-space:normal;font-size:.78em}
   .page-plan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .page-plan-grid article{border-top:1px solid var(--line)}
@@ -87,8 +99,13 @@
 }
 
 @media(max-width:720px){
-  .hero h1{font-size:43px;line-height:1.08}
-  .hero h1 .hero-emphasis{font-size:.82em;line-height:1.25;margin-top:.28em}
+  .hero h1{font-size:34px!important;line-height:1.13!important;letter-spacing:-.035em!important}
+  .hero h1 span{white-space:normal;max-width:100%}
+  .hero h1 .hero-emphasis{font-size:.94em;line-height:1.22;margin-top:.32em;white-space:normal}
+  .hero-lead{font-size:15px;line-height:1.8;overflow-wrap:anywhere}
+  .makeover .section-heading h2,.section-heading h2{font-size:34px!important;line-height:1.18!important;letter-spacing:-.035em!important}
+  .discovery-copy h2{font-size:36px!important;line-height:1.2!important;letter-spacing:-.035em!important}
+  .contact-copy h2{font-size:38px!important;line-height:1.16!important;letter-spacing:-.04em!important}
   .comparison-table{overflow-x:auto}
   .comparison-table>div{min-width:690px;grid-template-columns:120px 1fr 1fr}
   .comparison-table span,.comparison-table strong,.comparison-table b{padding:14px}
@@ -97,7 +114,6 @@
   .page-plan-grid article:first-child{border-top:0}
   .page-plan-grid article>span{margin-bottom:22px}
   .included-grid{grid-template-columns:1fr}
-  .discovery-copy h2{font-size:42px}
   .discovery-points article{grid-template-columns:42px 1fr;padding:20px;gap:14px}
   .discovery-points article>span{width:38px;height:38px}
   .discovery-points h3{font-size:20px}
