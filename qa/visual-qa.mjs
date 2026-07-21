@@ -41,7 +41,8 @@ for(const viewport of viewports){
       return Boolean(image?.complete&&image.naturalWidth>0&&image.naturalHeight>0);
     },{timeout:30000});
     await page.waitForFunction(()=>[...document.styleSheets].some(sheet=>sheet.href?.includes('v32-round2-polish.css')),{timeout:15000});
-    await page.waitForTimeout(900);
+    await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto'});
+    await page.waitForTimeout(700);
 
     result.initial=await page.evaluate(()=>{
       const image=document.querySelector('.portrait-frame img');
@@ -53,6 +54,8 @@ for(const viewport of viewports){
         h1:h1?.innerText||'',
         h1Size:Number.parseFloat(getComputedStyle(h1).fontSize),
         leadSize:Number.parseFloat(getComputedStyle(lead).fontSize),
+        problemHeading:document.querySelector('#problems h2')?.innerText||'',
+        makeoverHeading:document.querySelector('#makeover h2')?.innerText||'',
         demoHeadline:document.querySelector('.after-hero h3')?.innerText||'',
         siteLayers:document.querySelectorAll('.site-layer').length,
         problemRows:document.querySelectorAll('.problem-row').length,
@@ -71,6 +74,7 @@ for(const viewport of viewports){
     });
 
     if(!result.initial.h1.includes('相談につながる')||!result.initial.h1.includes('ホームページ'))throw new Error(`${viewport.name}: customer outcome is missing from hero`);
+    if(!result.initial.problemHeading.includes('こんな悩み')||!result.initial.makeoverHeading.includes('選ばれ方'))throw new Error(`${viewport.name}: customer-led section copy is missing`);
     if(result.initial.h1Size<40)throw new Error(`${viewport.name}: hero heading is too small`);
     if(result.initial.leadSize<14)throw new Error(`${viewport.name}: hero lead is too small`);
     if(!result.initial.demoHeadline.includes('運動が続かなかった男性へ')||!result.initial.demoHeadline.includes('週2回から始める'))throw new Error(`${viewport.name}: customer-specific makeover copy missing`);
@@ -89,7 +93,17 @@ for(const viewport of viewports){
     if(!viewport.mobile&&result.initial.mobileDock!=='none')throw new Error(`${viewport.name}: mobile dock unexpectedly visible`);
     if(!result.initial.instagramHref.includes('/kite9njp'))throw new Error(`${viewport.name}: Instagram target is wrong`);
 
-    await page.locator('#architectureScene').scrollIntoViewIfNeeded();
+    const anchorSelector=viewport.mobile?'.mobile-dock a[href="#makeover"]':'.desktop-nav a[href="#makeover"]';
+    await page.locator(anchorSelector).click();
+    await page.waitForTimeout(160);
+    result.anchorOffset=await page.evaluate(()=>{
+      const header=document.querySelector('.header-inner')?.getBoundingClientRect();
+      const target=document.querySelector('#makeover')?.getBoundingClientRect();
+      return{headerBottom:header?.bottom||0,targetTop:target?.top||0};
+    });
+    if(result.anchorOffset.targetTop<result.anchorOffset.headerBottom+12)throw new Error(`${viewport.name}: anchor content is hidden by fixed header`);
+
+    await page.evaluate(()=>document.querySelector('#architectureScene')?.scrollIntoView({block:'center',behavior:'auto'}));
     await page.waitForTimeout(180);
     const layerBefore=await page.locator('.layer-message').evaluate(element=>getComputedStyle(element).transform);
     const sceneBox=await page.locator('#architectureScene').boundingBox();
@@ -102,8 +116,8 @@ for(const viewport of viewports){
     }
 
     for(const id of sections){
-      await page.locator(`#${id}`).scrollIntoViewIfNeeded();
-      await page.waitForTimeout(350);
+      await page.evaluate(target=>document.getElementById(target)?.scrollIntoView({block:'start',behavior:'auto'}),id);
+      await page.waitForTimeout(220);
       const state=await page.evaluate(target=>{
         const section=document.getElementById(target);
         const rect=section.getBoundingClientRect();
@@ -124,11 +138,12 @@ for(const viewport of viewports){
       if(!state.rect.width||state.rect.height<120)throw new Error(`${viewport.name}: ${id} has no meaningful layout`);
       if(state.visibleTextCount<3)throw new Error(`${viewport.name}: ${id} has too little visible content`);
       if(state.tinyText.length>6)throw new Error(`${viewport.name}: ${id} contains excessive tiny text`);
+      if(state.headingRect&&state.headingRect.top<74)throw new Error(`${viewport.name}: ${id} heading is hidden under fixed header`);
     }
 
-    await page.locator('#makeover').scrollIntoViewIfNeeded();
+    await page.evaluate(()=>document.querySelector('#makeover')?.scrollIntoView({block:'start',behavior:'auto'}));
     await page.locator('.makeover-tab[data-view="after"]').click();
-    await page.waitForTimeout(250);
+    await page.waitForTimeout(180);
     result.makeoverAfter=await page.evaluate(()=>({
       selected:document.querySelector('.makeover-tab[data-view="after"]')?.getAttribute('aria-selected'),
       afterHidden:document.querySelector('[data-makeover="after"]')?.hidden,
@@ -140,7 +155,7 @@ for(const viewport of viewports){
     if(!result.makeoverAfter.text.includes('週2回')||!result.makeoverAfter.note.includes('対象者'))throw new Error(`${viewport.name}: makeover does not demonstrate a customer-facing change`);
 
     await page.locator('.faq-item button').first().click();
-    await page.waitForTimeout(120);
+    await page.waitForTimeout(100);
     result.faq=await page.evaluate(()=>({
       expanded:document.querySelector('.faq-item button')?.getAttribute('aria-expanded'),
       answerHidden:document.querySelector('.faq-answer')?.hidden,
@@ -148,24 +163,24 @@ for(const viewport of viewports){
     }));
     if(result.faq.expanded!=='true'||result.faq.answerHidden||!result.faq.answerText.includes('問題ありません'))throw new Error(`${viewport.name}: FAQ interaction failed`);
 
-    await page.locator('#contact').scrollIntoViewIfNeeded();
+    await page.evaluate(()=>document.querySelector('#contact')?.scrollIntoView({block:'start',behavior:'auto'}));
     await page.locator('#copyBrief').click();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(160);
     result.copyStatus=(await page.locator('#copyStatus').textContent())?.trim()||'';
     if(!result.copyStatus.includes('コピー'))throw new Error(`${viewport.name}: consultation template feedback missing`);
 
     await page.evaluate(()=>document.querySelectorAll('.reveal').forEach(element=>element.classList.add('is-visible')));
-    await page.evaluate(()=>window.scrollTo({top:0,behavior:'auto'}));
-    await page.waitForTimeout(120);
+    await page.evaluate(()=>window.scrollTo(0,0));
+    await page.waitForTimeout(80);
     await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-top.png`),fullPage:false});
-    await page.locator('#makeover').scrollIntoViewIfNeeded();
-    await page.waitForTimeout(120);
+    await page.evaluate(()=>document.querySelector('#makeover')?.scrollIntoView({block:'start',behavior:'auto'}));
+    await page.waitForTimeout(80);
     await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-makeover.png`),fullPage:false});
-    await page.locator('#contact').scrollIntoViewIfNeeded();
-    await page.waitForTimeout(120);
+    await page.evaluate(()=>document.querySelector('#contact')?.scrollIntoView({block:'start',behavior:'auto'}));
+    await page.waitForTimeout(80);
     await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-contact.png`),fullPage:false});
-    await page.evaluate(()=>window.scrollTo({top:0,behavior:'auto'}));
-    await page.waitForTimeout(120);
+    await page.evaluate(()=>window.scrollTo(0,0));
+    await page.waitForTimeout(80);
     await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-full.png`),fullPage:true});
 
     if(consoleErrors.length)throw new Error(`${viewport.name}: console errors: ${consoleErrors.join(' | ')}`);
