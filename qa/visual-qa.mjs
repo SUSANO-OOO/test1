@@ -18,6 +18,7 @@ const pages=[
   {file:'about.html',slug:'about',h1:'話を聞き',must:['これまでの経験','現在の立ち位置']},
   {file:'contact.html',slug:'contact',h1:'内容が決まっていなくても',must:['無料モニターの主な条件','問い合わせフォーム']}
 ];
+const compact=value=>(value||'').replace(/\s+/g,'');
 await fs.mkdir(outputDir,{recursive:true});
 const report={rootUrl,startedAt:new Date().toISOString(),viewports:[],failures:[]};
 
@@ -68,8 +69,8 @@ for(const viewport of viewports){
       });
 
       if(!state.stylesheet)throw new Error(`${viewport.name}/${item.slug}: v34 stylesheet missing`);
-      if(!state.h1.includes(item.h1))throw new Error(`${viewport.name}/${item.slug}: expected h1 copy missing`);
-      for(const phrase of item.must){if(!state.bodyText.includes(phrase))throw new Error(`${viewport.name}/${item.slug}: required copy missing: ${phrase}`)}
+      if(!compact(state.h1).includes(compact(item.h1)))throw new Error(`${viewport.name}/${item.slug}: expected h1 copy missing`);
+      for(const phrase of item.must){if(!compact(state.bodyText).includes(compact(phrase)))throw new Error(`${viewport.name}/${item.slug}: required copy missing: ${phrase}`)}
       if(state.h1Size<(viewport.width<=390?36:42))throw new Error(`${viewport.name}/${item.slug}: h1 is too small`);
       if(state.h1Rect?.left<0||state.h1Rect?.right>viewport.width+1)throw new Error(`${viewport.name}/${item.slug}: h1 escapes viewport`);
       if(state.horizontalOverflow)throw new Error(`${viewport.name}/${item.slug}: horizontal overflow`);
@@ -90,7 +91,7 @@ for(const viewport of viewports){
       await page.close();
     }
 
-    const request=await context.request;
+    const request=context.request;
     for(const asset of ['robots.txt','sitemap.xml','privacy.html','thanks.html']){
       const response=await request.get(new URL(asset,rootUrl).href);
       if(!response.ok())throw new Error(`${viewport.name}: ${asset} missing`);
