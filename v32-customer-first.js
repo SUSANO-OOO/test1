@@ -4,8 +4,24 @@
   const d=document;
   const root=d.documentElement;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  root.classList.add('js');
 
+  const polish=d.createElement('link');
+  polish.rel='stylesheet';
+  polish.href='./v32-round2-polish.css?v=20260721-2';
+  d.head.appendChild(polish);
+
+  const copyPatches=[
+    ['#deliverables .section-heading h2','納品するのは、<br>ページ一枚では<br>ありません。'],
+    ['#about .section-heading h2','現場を知っているから、<br>見た目だけで<br>終わらせません。'],
+    ['.after-hero small','長崎 / 初心者向け・完全予約制'],
+    ['.after-hero h3','運動が続かなかった男性へ。<br>週2回から始める<br>パーソナルジム。']
+  ];
+  copyPatches.forEach(([selector,html])=>{
+    const element=d.querySelector(selector);
+    if(element)element.innerHTML=html;
+  });
+
+  root.classList.add('js');
   const clamp=(min,value,max)=>Math.min(max,Math.max(min,value));
 
   const revealItems=[...d.querySelectorAll('.reveal')];
@@ -44,15 +60,18 @@
     let targetX=0,targetY=0,currentX=0,currentY=0;
     let pressed=false;
     let raf=0;
+    let pageVisible=true;
+    let sceneVisible=true;
 
     const updateScene=()=>{
+      raf=requestAnimationFrame(updateScene);
+      if(!pageVisible||!sceneVisible)return;
       currentX+=(targetX-currentX)*.08;
       currentY+=(targetY-currentY)*.08;
       const scrollFactor=clamp(0,scrollY/Math.max(1,innerHeight*.9),1);
       scene.style.setProperty('--ry',`${11+currentX*7}deg`);
       scene.style.setProperty('--rx',`${-7-currentY*5}deg`);
       scene.style.setProperty('--spread',String(1+scrollFactor*.12));
-      raf=requestAnimationFrame(updateScene);
     };
 
     const move=event=>{
@@ -73,6 +92,10 @@
     });
     scene.addEventListener('pointercancel',()=>{pressed=false});
     scene.addEventListener('pointerleave',()=>{if(!pressed){targetX=0;targetY=0}});
+    d.addEventListener('visibilitychange',()=>{pageVisible=!d.hidden});
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(([entry])=>{sceneVisible=entry.isIntersecting},{rootMargin:'160px'}).observe(scene);
+    }
     raf=requestAnimationFrame(updateScene);
     addEventListener('pagehide',()=>cancelAnimationFrame(raf),{once:true});
   }
