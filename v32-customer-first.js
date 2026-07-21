@@ -7,12 +7,19 @@
 
   const polish=d.createElement('link');
   polish.rel='stylesheet';
-  polish.href='./v32-round2-polish.css?v=20260721-2';
+  polish.href='./v32-round2-polish.css?v=20260721-3';
   d.head.appendChild(polish);
 
   const copyPatches=[
+    ['#problems .section-heading h2','こんな悩みが、<br>ありませんか。'],
+    ['#makeover .section-heading h2','伝え方で、<br>選ばれ方が変わる。'],
     ['#deliverables .section-heading h2','納品するのは、<br>ページ一枚では<br>ありません。'],
+    ['#case-zero .case-zero-copy>p:not(.section-kicker)','このサイトも、営業でURLを受け取った人が「自分向けか」「何を頼めるか」「次に何をすればいいか」を順番に理解できるよう、悩み・設計・表現・検証の4段階で組み立てています。'],
     ['#about .section-heading h2','現場を知っているから、<br>見た目だけで<br>終わらせません。'],
+    ['#about .section-heading>p:not(.section-kicker)','私の強みは、制作会社の肩書きではなく、問い合わせ・店舗運営・PC支援の現場で「相手がどこで迷うか」「何が分からないか」を見てきたことです。'],
+    ['#monitor h2','制作事例に、<br>ご協力いただける方へ。'],
+    ['#faq .section-heading h2','相談前の、<br>よくある質問。'],
+    ['#contact h2','まずは、今の悩みを<br>一つだけ教えてください。'],
     ['.after-hero small','長崎 / 初心者向け・完全予約制'],
     ['.after-hero h3','運動が続かなかった男性へ。<br>週2回から始める<br>パーソナルジム。']
   ];
