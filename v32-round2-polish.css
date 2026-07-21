@@ -8,8 +8,9 @@ section[id]{scroll-margin-top:132px}
 
 @media(min-width:1101px){
   .hero-grid{grid-template-columns:minmax(0,1.08fr) minmax(460px,.92fr);gap:62px}
-  .hero h1{font-size:clamp(52px,5.75vw,84px)}
-  .hero-emphasis{font-size:.82em;white-space:nowrap;letter-spacing:-.07em}
+  .hero h1{font-size:clamp(52px,5.5vw,80px)}
+  .hero h1 span:last-child{font-size:.86em;white-space:nowrap}
+  .hero-emphasis{font-size:.84em;white-space:nowrap;letter-spacing:-.065em}
   .section-heading{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:78px}
   .section-heading h2{font-size:clamp(40px,4.2vw,60px)}
   .section-heading>p:not(.section-kicker){max-width:620px;justify-self:end}
@@ -17,13 +18,14 @@ section[id]{scroll-margin-top:132px}
   .faq-grid .section-heading h2{font-size:56px}
   .after-hero{grid-template-columns:1.3fr .7fr;padding:52px 48px}
   .after-hero h3{font-size:36px;letter-spacing:-.035em;line-height:1.22}
-  .monitor-panel h2{font-size:56px}
-  .contact-copy h2{font-size:64px}
+  .monitor-panel h2{font-size:54px}
+  .contact-copy h2{font-size:56px}
 }
 
 @media(max-width:1100px) and (min-width:821px){
   section[id]{scroll-margin-top:112px}
   .section-heading h2{font-size:56px}
+  .hero h1 span:last-child{white-space:nowrap}
   .hero-emphasis{font-size:.9em;white-space:nowrap}
   .after-hero h3{font-size:34px}
 }
@@ -37,6 +39,7 @@ section[id]{scroll-margin-top:132px}
 @media(max-width:560px){
   section[id]{scroll-margin-top:78px}
   .hero h1{font-size:42px;line-height:1.09}
+  .hero h1 span:last-child{font-size:1em;white-space:nowrap}
   .hero-emphasis{font-size:1em;white-space:nowrap;letter-spacing:-.065em}
   .section-kicker,.eyebrow{font-size:10px;letter-spacing:.13em}
   .section-heading h2{font-size:37px;line-height:1.13;letter-spacing:-.035em}
@@ -47,5 +50,5 @@ section[id]{scroll-margin-top:132px}
   .process .section-heading h2{font-size:37px}
   .monitor-panel h2{font-size:35px;line-height:1.14}
   .faq-grid .section-heading h2{font-size:38px}
-  .contact-copy h2{font-size:36px;line-height:1.15}
+  .contact-copy h2{font-size:35px;line-height:1.15}
 }
