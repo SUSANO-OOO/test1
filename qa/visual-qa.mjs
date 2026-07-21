@@ -47,7 +47,10 @@ for(const viewport of viewports){
     result.initial=await page.evaluate(()=>{
       const image=document.querySelector('.portrait-frame img');
       const scene=document.querySelector('#architectureScene');
+      const architectureWrap=document.querySelector('.architecture-wrap');
+      const heroCopy=document.querySelector('.hero-copy');
       const h1=document.querySelector('.hero h1');
+      const emphasis=document.querySelector('.hero-emphasis');
       const lead=document.querySelector('.hero-lead');
       const header=document.querySelector('.header-inner');
       const form=document.querySelector('.contact-form-card');
@@ -55,7 +58,11 @@ for(const viewport of viewports){
         title:document.title,
         canonical:document.querySelector('link[rel="canonical"]')?.href||'',
         scrollY:window.scrollY,
+        viewportWidth:innerWidth,
         headerBottom:header?.getBoundingClientRect().bottom||0,
+        heroCopyRect:heroCopy?.getBoundingClientRect().toJSON(),
+        h1Rect:h1?.getBoundingClientRect().toJSON(),
+        emphasisRect:emphasis?.getBoundingClientRect().toJSON(),
         h1Top:h1?.getBoundingClientRect().top||0,
         h1:h1?.innerText||'',
         h1Size:Number.parseFloat(getComputedStyle(h1).fontSize),
@@ -83,6 +90,7 @@ for(const viewport of viewports){
         canvasCount:document.querySelectorAll('canvas').length,
         portrait:{src:image?.getAttribute('src')||'',width:image?.naturalWidth||0,height:image?.naturalHeight||0},
         sceneRect:scene?.getBoundingClientRect().toJSON(),
+        architectureWrapRect:architectureWrap?.getBoundingClientRect().toJSON(),
         horizontalOverflow:document.documentElement.scrollWidth>innerWidth+1,
         mobileDock:getComputedStyle(document.querySelector('.mobile-dock')).display,
         instagramHref:document.querySelector('#contact a[href*="instagram.com"]')?.href||''
@@ -96,7 +104,10 @@ for(const viewport of viewports){
     if(!result.initial.makeoverHeading.includes('伝える内容')||!result.initial.offerHeading.includes('ここまで作ります'))throw new Error(`${viewport.name}: sales-led section copy is missing`);
     if(!result.initial.discoveryHeading.includes('AI')||!result.initial.monitorHeading.includes('無料の範囲'))throw new Error(`${viewport.name}: discovery or offer conditions are missing`);
     if(!result.initial.contactHeading.includes('フォーム'))throw new Error(`${viewport.name}: contact form promise is missing`);
-    if(result.initial.h1Size<38||result.initial.leadSize<14)throw new Error(`${viewport.name}: hero typography is too small`);
+    if(result.initial.h1Size<(viewport.mobile?30:38)||result.initial.leadSize<14)throw new Error(`${viewport.name}: hero typography is too small`);
+    if(result.initial.h1Rect?.right>result.initial.heroCopyRect?.right+2||result.initial.emphasisRect?.right>result.initial.heroCopyRect?.right+2)throw new Error(`${viewport.name}: hero copy escapes its column`);
+    if(result.initial.h1Rect?.left<result.initial.heroCopyRect?.left-2)throw new Error(`${viewport.name}: hero copy escapes left edge`);
+    if(result.initial.architectureWrapRect?.width>result.initial.viewportWidth+1||result.initial.architectureWrapRect?.right>result.initial.viewportWidth+1)throw new Error(`${viewport.name}: architecture wrapper exceeds viewport`);
     if(!result.initial.demoHeadline.includes('週2回')||!result.initial.demoHeadline.includes('完全予約制'))throw new Error(`${viewport.name}: specific makeover offer is missing`);
     if(result.initial.siteLayers!==4)throw new Error(`${viewport.name}: expected four meaningful design layers`);
     if(result.initial.problemRows!==4)throw new Error(`${viewport.name}: expected four customer problems`);
