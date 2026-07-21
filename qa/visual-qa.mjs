@@ -2,231 +2,107 @@ import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-const baseUrl=process.env.BASE_URL||'http://127.0.0.1:4173/index.html';
+const startUrl=process.env.BASE_URL||'http://127.0.0.1:4173/index.html';
+const rootUrl=new URL('.',startUrl).href;
 const outputPrefix=process.env.OUTPUT_PREFIX||'local';
 const outputDir=path.resolve('qa-artifacts');
 const viewports=[
-  {name:'desktop-1440',width:1440,height:900,mobile:false},
-  {name:'tablet-1024',width:1024,height:768,mobile:false},
-  {name:'mobile-390',width:390,height:844,mobile:true}
+  {name:'desktop-1440',width:1440,height:900},
+  {name:'tablet-1024',width:1024,height:768},
+  {name:'mobile-390',width:390,height:844}
 ];
-const sections=['problems','makeover','deliverables','discovery','case-zero','about','process','monitor','faq','contact'];
+const pages=[
+  {file:'index.html',slug:'home',h1:'ホームページは欲しい',must:['基本5ページ','何を載せればいいのか分からない']},
+  {file:'service.html',slug:'service',h1:'無料モニターで、何を作るのか',must:['基本の5ページ','検索・AIへの基礎対応']},
+  {file:'works.html',slug:'works',h1:'見た目を変えるだけでは',must:['改善前','改善後','架空例']},
+  {file:'about.html',slug:'about',h1:'話を聞き',must:['これまでの経験','現在の立ち位置']},
+  {file:'contact.html',slug:'contact',h1:'内容が決まっていなくても',must:['無料モニターの主な条件','問い合わせフォーム']}
+];
 await fs.mkdir(outputDir,{recursive:true});
-const report={baseUrl,startedAt:new Date().toISOString(),viewports:[],failures:[]};
+const report={rootUrl,startedAt:new Date().toISOString(),viewports:[],failures:[]};
 
 for(const viewport of viewports){
   const browser=await chromium.launch({headless:true});
-  const context=await browser.newContext({
-    viewport:{width:viewport.width,height:viewport.height},
-    deviceScaleFactor:1,
-    permissions:['clipboard-read','clipboard-write']
-  });
-  const page=await context.newPage();
-  const consoleErrors=[];const pageErrors=[];const failedRequests=[];const sameOrigin404=[];
-  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text())});
-  page.on('pageerror',error=>pageErrors.push(String(error)));
-  page.on('requestfailed',request=>failedRequests.push({url:request.url(),reason:request.failure()?.errorText||'unknown'}));
-  page.on('response',response=>{
-    if(response.status()!==404)return;
-    try{if(new URL(response.url()).origin===new URL(baseUrl).origin)sameOrigin404.push(response.url())}catch{}
-  });
-  const result={...viewport,consoleErrors,pageErrors,failedRequests,sameOrigin404,sections:{}};
-
+  const context=await browser.newContext({viewport:{width:viewport.width,height:viewport.height},deviceScaleFactor:1});
+  const result={...viewport,pages:{}};
   try{
-    await page.goto(baseUrl,{waitUntil:'networkidle',timeout:60000});
-    await page.waitForSelector('.hero h1');
-    await page.waitForFunction(()=>document.documentElement.dataset.siteReady==='true',{timeout:15000});
-    await page.waitForFunction(()=>{
-      const image=document.querySelector('.portrait-frame img');
-      return Boolean(image?.complete&&image.naturalWidth>0&&image.naturalHeight>0);
-    },{timeout:30000});
-    await page.waitForFunction(()=>[...document.styleSheets].some(sheet=>sheet.href?.includes('v33-sales.css')),{timeout:15000});
-    await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';window.scrollTo(0,0)});
-    await page.waitForTimeout(500);
+    for(const item of pages){
+      const page=await context.newPage();
+      const consoleErrors=[];const pageErrors=[];const failedRequests=[];const sameOrigin404=[];
+      page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text())});
+      page.on('pageerror',error=>pageErrors.push(String(error)));
+      page.on('requestfailed',request=>failedRequests.push({url:request.url(),reason:request.failure()?.errorText||'unknown'}));
+      page.on('response',response=>{if(response.status()===404&&new URL(response.url()).origin===new URL(rootUrl).origin)sameOrigin404.push(response.url())});
 
-    result.initial=await page.evaluate(()=>{
-      const image=document.querySelector('.portrait-frame img');
-      const scene=document.querySelector('#architectureScene');
-      const architectureWrap=document.querySelector('.architecture-wrap');
-      const heroCopy=document.querySelector('.hero-copy');
-      const h1=document.querySelector('.hero h1');
-      const emphasis=document.querySelector('.hero-emphasis');
-      const lead=document.querySelector('.hero-lead');
-      const header=document.querySelector('.header-inner');
-      const form=document.querySelector('.contact-form-card');
-      return{
-        title:document.title,
-        canonical:document.querySelector('link[rel="canonical"]')?.href||'',
-        scrollY:window.scrollY,
-        viewportWidth:innerWidth,
-        headerBottom:header?.getBoundingClientRect().bottom||0,
-        heroCopyRect:heroCopy?.getBoundingClientRect().toJSON(),
-        h1Rect:h1?.getBoundingClientRect().toJSON(),
-        emphasisRect:emphasis?.getBoundingClientRect().toJSON(),
-        h1Top:h1?.getBoundingClientRect().top||0,
-        h1:h1?.innerText||'',
-        h1Size:Number.parseFloat(getComputedStyle(h1).fontSize),
-        leadSize:Number.parseFloat(getComputedStyle(lead).fontSize),
-        makeoverHeading:document.querySelector('#makeover h2')?.innerText||'',
-        offerHeading:document.querySelector('#deliverables h2')?.innerText||'',
-        discoveryHeading:document.querySelector('#discovery h2')?.innerText||'',
-        monitorHeading:document.querySelector('#monitor h2')?.innerText||'',
-        contactHeading:document.querySelector('#contact h2')?.innerText||'',
-        demoHeadline:document.querySelector('.after-hero h3')?.innerText||'',
-        siteLayers:document.querySelectorAll('.site-layer').length,
-        problemRows:document.querySelectorAll('.problem-row').length,
-        pagePlans:document.querySelectorAll('.page-plan-grid article').length,
-        includedItems:document.querySelectorAll('.included-grid article').length,
-        discoveryItems:document.querySelectorAll('.discovery-points article').length,
-        strengths:document.querySelectorAll('.strength-item').length,
-        processSteps:document.querySelectorAll('.process-timeline article').length,
-        monitorItems:document.querySelectorAll('.monitor-conditions article').length,
-        faqItems:document.querySelectorAll('.faq-item').length,
-        comparisonRows:document.querySelectorAll('.comparison-table>div').length,
-        formAction:form?.action||'',
-        requiredFields:form?.querySelectorAll('input[required],select[required],textarea[required]').length||0,
-        formNext:form?.querySelector('input[name="_next"]')?.value||'',
-        directEmail:document.querySelector('#contact a[href^="mailto:"]')?.getAttribute('href')||'',
-        canvasCount:document.querySelectorAll('canvas').length,
-        portrait:{src:image?.getAttribute('src')||'',width:image?.naturalWidth||0,height:image?.naturalHeight||0},
-        sceneRect:scene?.getBoundingClientRect().toJSON(),
-        architectureWrapRect:architectureWrap?.getBoundingClientRect().toJSON(),
-        horizontalOverflow:document.documentElement.scrollWidth>innerWidth+1,
-        mobileDock:getComputedStyle(document.querySelector('.mobile-dock')).display,
-        instagramHref:document.querySelector('#contact a[href*="instagram.com"]')?.href||''
-      };
-    });
+      const url=new URL(item.file,rootUrl).href;
+      await page.goto(url,{waitUntil:'networkidle',timeout:60000});
+      await page.waitForSelector('h1');
+      await page.waitForTimeout(250);
 
-    if(result.initial.scrollY!==0)throw new Error(`${viewport.name}: initial page did not start at the top`);
-    if(result.initial.h1Top<result.initial.headerBottom+8)throw new Error(`${viewport.name}: hero heading is hidden under the header`);
-    if(!result.initial.h1.includes('ホームページは欲しい')||!result.initial.h1.includes('5ページ分'))throw new Error(`${viewport.name}: concrete five-page offer is missing from hero`);
-    if(!result.initial.title.includes('5ページ')||!result.initial.canonical.endsWith('/test1/'))throw new Error(`${viewport.name}: title or canonical is incorrect`);
-    if(!result.initial.makeoverHeading.includes('伝える内容')||!result.initial.offerHeading.includes('ここまで作ります'))throw new Error(`${viewport.name}: sales-led section copy is missing`);
-    if(!result.initial.discoveryHeading.includes('AI')||!result.initial.monitorHeading.includes('無料の範囲'))throw new Error(`${viewport.name}: discovery or offer conditions are missing`);
-    if(!result.initial.contactHeading.includes('フォーム'))throw new Error(`${viewport.name}: contact form promise is missing`);
-    if(result.initial.h1Size<(viewport.mobile?30:38)||result.initial.leadSize<14)throw new Error(`${viewport.name}: hero typography is too small`);
-    if(result.initial.h1Rect?.right>result.initial.heroCopyRect?.right+2||result.initial.emphasisRect?.right>result.initial.heroCopyRect?.right+2)throw new Error(`${viewport.name}: hero copy escapes its column`);
-    if(result.initial.h1Rect?.left<result.initial.heroCopyRect?.left-2)throw new Error(`${viewport.name}: hero copy escapes left edge`);
-    if(result.initial.architectureWrapRect?.width>result.initial.viewportWidth+1||result.initial.architectureWrapRect?.right>result.initial.viewportWidth+1)throw new Error(`${viewport.name}: architecture wrapper exceeds viewport`);
-    if(!result.initial.demoHeadline.includes('週2回')||!result.initial.demoHeadline.includes('完全予約制'))throw new Error(`${viewport.name}: specific makeover offer is missing`);
-    if(result.initial.siteLayers!==4)throw new Error(`${viewport.name}: expected four meaningful design layers`);
-    if(result.initial.problemRows!==4)throw new Error(`${viewport.name}: expected four customer problems`);
-    if(result.initial.pagePlans!==5)throw new Error(`${viewport.name}: expected five standard pages`);
-    if(result.initial.includedItems!==6)throw new Error(`${viewport.name}: expected six included deliverables`);
-    if(result.initial.discoveryItems!==4)throw new Error(`${viewport.name}: expected four search/AI foundations`);
-    if(result.initial.strengths!==3||result.initial.processSteps!==4)throw new Error(`${viewport.name}: experience or process count is wrong`);
-    if(result.initial.monitorItems!==6||result.initial.faqItems!==6)throw new Error(`${viewport.name}: conditions or FAQ count is wrong`);
-    if(result.initial.comparisonRows!==6)throw new Error(`${viewport.name}: makeover comparison is incomplete`);
-    if(!result.initial.formAction.includes('formsubmit.co/o.kite914@gmail.com'))throw new Error(`${viewport.name}: form destination is wrong`);
-    if(result.initial.requiredFields<6)throw new Error(`${viewport.name}: contact form lacks required information`);
-    if(!result.initial.formNext.endsWith('/test1/thanks.html'))throw new Error(`${viewport.name}: contact confirmation redirect is wrong`);
-    if(result.initial.directEmail!=='mailto:o.kite914@gmail.com')throw new Error(`${viewport.name}: fallback email is wrong`);
-    if(result.initial.canvasCount!==0)throw new Error(`${viewport.name}: meaningless canvas remains`);
-    if(!/portrait\.webp/.test(result.initial.portrait.src)||result.initial.portrait.width<=0)throw new Error(`${viewport.name}: portrait invalid`);
-    if(!result.initial.sceneRect?.width||!result.initial.sceneRect?.height)throw new Error(`${viewport.name}: architecture visual is missing`);
-    if(result.initial.horizontalOverflow)throw new Error(`${viewport.name}: horizontal overflow`);
-    if(viewport.mobile&&result.initial.mobileDock==='none')throw new Error(`${viewport.name}: mobile dock hidden`);
-    if(!viewport.mobile&&result.initial.mobileDock!=='none')throw new Error(`${viewport.name}: mobile dock unexpectedly visible`);
-    if(!result.initial.instagramHref.includes('/kite9njp'))throw new Error(`${viewport.name}: Instagram target is wrong`);
-
-    const robotsResponse=await page.request.get(new URL('robots.txt',baseUrl).href);
-    const sitemapResponse=await page.request.get(new URL('sitemap.xml',baseUrl).href);
-    const privacyResponse=await page.request.get(new URL('privacy.html',baseUrl).href);
-    const thanksResponse=await page.request.get(new URL('thanks.html',baseUrl).href);
-    if(!robotsResponse.ok()||!(await robotsResponse.text()).includes('sitemap.xml'))throw new Error(`${viewport.name}: robots.txt is invalid`);
-    if(!sitemapResponse.ok()||!(await sitemapResponse.text()).includes('/test1/'))throw new Error(`${viewport.name}: sitemap.xml is invalid`);
-    if(!privacyResponse.ok()||!thanksResponse.ok())throw new Error(`${viewport.name}: privacy or thanks page is missing`);
-
-    await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-top.png`),fullPage:false});
-
-    const anchorSelector=viewport.mobile?'.mobile-dock a[href="#makeover"]':'.desktop-nav a[href="#makeover"]';
-    await page.locator(anchorSelector).click();
-    await page.waitForFunction(()=>{
-      const header=document.querySelector('.header-inner')?.getBoundingClientRect();
-      const target=document.querySelector('#makeover')?.getBoundingClientRect();
-      if(!header||!target)return false;
-      return target.top>=header.bottom+6&&target.top<=header.bottom+200;
-    },{timeout:4000});
-
-    await page.evaluate(()=>document.querySelector('#architectureScene')?.scrollIntoView({block:'center',behavior:'auto'}));
-    await page.waitForTimeout(180);
-    const layerBefore=await page.locator('.layer-message').evaluate(element=>getComputedStyle(element).transform);
-    const sceneBox=await page.locator('#architectureScene').boundingBox();
-    if(sceneBox){
-      await page.mouse.move(sceneBox.x+sceneBox.width*.78,sceneBox.y+sceneBox.height*.28);
-      await page.waitForTimeout(450);
-      const layerAfter=await page.locator('.layer-message').evaluate(element=>getComputedStyle(element).transform);
-      result.architectureInteraction={before:layerBefore,after:layerAfter,changed:layerBefore!==layerAfter};
-      if(!viewport.mobile&&!result.architectureInteraction.changed)throw new Error(`${viewport.name}: architecture does not react`);
-    }
-
-    for(const id of sections){
-      await page.evaluate(target=>document.getElementById(target)?.scrollIntoView({block:'start',behavior:'auto'}),id);
-      await page.waitForTimeout(180);
-      const state=await page.evaluate(target=>{
-        const section=document.getElementById(target);
-        const rect=section.getBoundingClientRect();
-        const heading=section.querySelector('h2');
-        const visibleText=[...section.querySelectorAll('h2,h3,p,li,button,a,label')].filter(element=>{
-          const style=getComputedStyle(element);const box=element.getBoundingClientRect();
-          return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity)>.1&&box.width>0&&box.height>0;
+      const state=await page.evaluate(()=>{
+        const h1=document.querySelector('h1');
+        const header=document.querySelector('.site-header');
+        const nav=[...document.querySelectorAll('.main-nav a')].map(link=>({text:link.textContent?.trim()||'',href:link.getAttribute('href')||''}));
+        const visibleText=[...document.querySelectorAll('h1,h2,h3,p,li,a,summary,label')].filter(element=>{
+          const style=getComputedStyle(element);const rect=element.getBoundingClientRect();
+          return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity)>.1&&rect.width>0&&rect.height>0;
         });
-        return{rect:rect.toJSON(),headingRect:heading?.getBoundingClientRect().toJSON()||null,visibleTextCount:visibleText.length};
-      },id);
-      result.sections[id]=state;
-      if(!state.rect.width||state.rect.height<120)throw new Error(`${viewport.name}: ${id} has no meaningful layout`);
-      if(state.visibleTextCount<3)throw new Error(`${viewport.name}: ${id} has too little visible content`);
-      if(state.headingRect&&state.headingRect.top<70)throw new Error(`${viewport.name}: ${id} heading is hidden under fixed header`);
+        return{
+          title:document.title,
+          canonical:document.querySelector('link[rel="canonical"]')?.href||'',
+          bodyText:document.body.innerText,
+          h1:h1?.innerText||'',
+          h1Size:Number.parseFloat(getComputedStyle(h1).fontSize),
+          h1Rect:h1?.getBoundingClientRect().toJSON(),
+          headerHeight:header?.getBoundingClientRect().height||0,
+          nav,
+          visibleTextCount:visibleText.length,
+          horizontalOverflow:document.documentElement.scrollWidth>innerWidth+1,
+          documentHeight:document.documentElement.scrollHeight,
+          viewportHeight:innerHeight,
+          stylesheet:[...document.styleSheets].some(sheet=>sheet.href?.includes('v34.css')),
+          portrait:document.querySelector('img[src*="portrait.webp"]')?.getAttribute('src')||'',
+          formAction:document.querySelector('form')?.action||'',
+          requiredFields:document.querySelectorAll('form [required]').length
+        };
+      });
+
+      if(!state.stylesheet)throw new Error(`${viewport.name}/${item.slug}: v34 stylesheet missing`);
+      if(!state.h1.includes(item.h1))throw new Error(`${viewport.name}/${item.slug}: expected h1 copy missing`);
+      for(const phrase of item.must){if(!state.bodyText.includes(phrase))throw new Error(`${viewport.name}/${item.slug}: required copy missing: ${phrase}`)}
+      if(state.h1Size<(viewport.width<=390?36:42))throw new Error(`${viewport.name}/${item.slug}: h1 is too small`);
+      if(state.h1Rect?.left<0||state.h1Rect?.right>viewport.width+1)throw new Error(`${viewport.name}/${item.slug}: h1 escapes viewport`);
+      if(state.horizontalOverflow)throw new Error(`${viewport.name}/${item.slug}: horizontal overflow`);
+      if(state.visibleTextCount<12)throw new Error(`${viewport.name}/${item.slug}: too little visible content`);
+      if(state.nav.length!==5)throw new Error(`${viewport.name}/${item.slug}: navigation is incomplete`);
+      if(consoleErrors.length||pageErrors.length||sameOrigin404.length)throw new Error(`${viewport.name}/${item.slug}: runtime error or 404`);
+      const localFailures=failedRequests.filter(entry=>new URL(entry.url).origin===new URL(rootUrl).origin);
+      if(localFailures.length)throw new Error(`${viewport.name}/${item.slug}: failed local request`);
+      if(item.slug==='about'&&!state.portrait.includes('portrait.webp'))throw new Error(`${viewport.name}/about: portrait missing`);
+      if(item.slug==='contact'){
+        if(!state.formAction.includes('formsubmit.co/o.kite914@gmail.com'))throw new Error(`${viewport.name}/contact: form destination is wrong`);
+        if(state.requiredFields<7)throw new Error(`${viewport.name}/contact: required form fields are incomplete`);
+      }
+      if(item.slug==='home'&&state.documentHeight>state.viewportHeight*8.5)throw new Error(`${viewport.name}/home: home page is still excessively long`);
+
+      await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-${item.slug}.png`),fullPage:true});
+      result.pages[item.slug]={url,...state,consoleErrors,pageErrors,failedRequests,sameOrigin404};
+      await page.close();
     }
 
-    await page.evaluate(()=>document.querySelector('#makeover')?.scrollIntoView({block:'start',behavior:'auto'}));
-    await page.locator('.makeover-tab[data-view="after"]').click();
-    await page.waitForTimeout(180);
-    result.makeoverAfter=await page.evaluate(()=>({
-      selected:document.querySelector('.makeover-tab[data-view="after"]')?.getAttribute('aria-selected'),
-      afterHidden:document.querySelector('[data-makeover="after"]')?.hidden,
-      beforeHidden:document.querySelector('[data-makeover="before"]')?.hidden,
-      text:document.querySelector('[data-makeover="after"]')?.innerText||'',
-      note:document.querySelector('[data-note="after"]')?.innerText||''
-    }));
-    if(result.makeoverAfter.selected!=='true'||result.makeoverAfter.afterHidden||!result.makeoverAfter.beforeHidden)throw new Error(`${viewport.name}: before/after interaction failed`);
-    if(!result.makeoverAfter.text.includes('完全予約制')||!result.makeoverAfter.note.includes('地域'))throw new Error(`${viewport.name}: makeover does not demonstrate concrete changes`);
-
-    await page.locator('.faq-item button').first().click();
-    await page.waitForTimeout(100);
-    result.faq=await page.evaluate(()=>({expanded:document.querySelector('.faq-item button')?.getAttribute('aria-expanded'),answerHidden:document.querySelector('.faq-answer')?.hidden,answerText:document.querySelector('.faq-answer')?.innerText||''}));
-    if(result.faq.expanded!=='true'||result.faq.answerHidden||!result.faq.answerText.includes('Zoom'))throw new Error(`${viewport.name}: FAQ interaction failed`);
-
-    await page.evaluate(()=>document.querySelector('#contact')?.scrollIntoView({block:'start',behavior:'auto'}));
-    await page.locator('#copyBrief').click();
-    await page.waitForTimeout(160);
-    result.copyStatus=(await page.locator('#copyStatus').textContent())?.trim()||'';
-    if(!result.copyStatus.includes('コピー'))throw new Error(`${viewport.name}: consultation copy feedback missing`);
-
-    await page.evaluate(()=>document.querySelectorAll('.reveal').forEach(element=>element.classList.add('is-visible')));
-    for(const target of ['makeover','deliverables','discovery','contact']){
-      await page.evaluate(id=>document.querySelector(`#${id}`)?.scrollIntoView({block:'start',behavior:'auto'}),target);
-      await page.waitForTimeout(80);
-      await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-${target}.png`),fullPage:false});
+    const request=await context.request;
+    for(const asset of ['robots.txt','sitemap.xml','privacy.html','thanks.html']){
+      const response=await request.get(new URL(asset,rootUrl).href);
+      if(!response.ok())throw new Error(`${viewport.name}: ${asset} missing`);
     }
-    await page.evaluate(()=>window.scrollTo(0,0));
-    await page.waitForTimeout(80);
-    await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-full.png`),fullPage:true});
-
-    if(consoleErrors.length)throw new Error(`${viewport.name}: console errors: ${consoleErrors.join(' | ')}`);
-    if(pageErrors.length)throw new Error(`${viewport.name}: page errors: ${pageErrors.join(' | ')}`);
-    if(sameOrigin404.length)throw new Error(`${viewport.name}: same-origin 404: ${sameOrigin404.join(' | ')}`);
-    const localFailures=failedRequests.filter(item=>{try{return new URL(item.url).origin===new URL(baseUrl).origin}catch{return true}});
-    if(localFailures.length)throw new Error(`${viewport.name}: failed local requests: ${JSON.stringify(localFailures)}`);
+    const sitemap=await (await request.get(new URL('sitemap.xml',rootUrl).href)).text();
+    for(const item of pages){if(!sitemap.includes(item.file==='index.html'?'/test1/':`/test1/${item.file}`))throw new Error(`${viewport.name}: sitemap missing ${item.file}`)}
   }catch(error){
     const failure=String(error?.stack||error);result.failure=failure;report.failures.push({viewport:viewport.name,failure});
-    try{await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-failure.png`),fullPage:true})}catch{}
   }finally{
-    report.viewports.push(result);
-    await browser.close();
+    report.viewports.push(result);await browser.close();
   }
 }
-
 report.finishedAt=new Date().toISOString();
 await fs.writeFile(path.join(outputDir,`${outputPrefix}-report.json`),JSON.stringify(report,null,2),'utf8');
 console.log(JSON.stringify(report,null,2));
