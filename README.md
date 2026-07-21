@@ -12,6 +12,8 @@ https://susano-ooo.github.io/test1/
 - [100サイト文章・コンテンツ調査 ハンドブック](./docs/research/100-site-copy-study/HANDBOOK.md)
 - [調査コーパス 001-025](./docs/research/100-site-copy-study/01-corpus-001-025.md)
 - [調査コーパス 026-100](./docs/research/100-site-copy-study/02-corpus-026-100.md)
+- [公式サイト実地検証ログ 001-050](./docs/research/100-site-copy-study/03-verification-001-050.md)
+- [公式サイト実地検証ログ 051-100](./docs/research/100-site-copy-study/04-verification-051-100.md)
 - [プロジェクト基準書](./PAOPAO_PROJECT.md)
 - [Web制作スキル体系](./docs/WEB_PRODUCTION_SKILLS.md)
 - [公開前チェックリスト](./docs/RELEASE_CHECKLIST.md)
