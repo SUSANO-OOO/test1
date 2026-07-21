@@ -1,27 +1,32 @@
-# PAOPAO Portfolio Project
+# PAOPAO Website Project
 
-PAOPAOの個人ブランド・ポートフォリオサイトです。
+PAOPAOのホームページ制作サービスを紹介し、無料モニター募集と制作実績の蓄積につなげる公開サイトです。
 
-## 制作基準
+## 公開URL
 
-開発・修正を始める前に、次の文書を確認してください。
+https://susano-ooo.github.io/test1/
 
+## 作業前に読む文書
+
+- [エージェント共通規則](./AGENTS.md)
+- [100サイト文章・コンテンツ調査 ハンドブック](./docs/research/100-site-copy-study/HANDBOOK.md)
+- [調査コーパス 001-025](./docs/research/100-site-copy-study/01-corpus-001-025.md)
+- [調査コーパス 026-100](./docs/research/100-site-copy-study/02-corpus-026-100.md)
 - [プロジェクト基準書](./PAOPAO_PROJECT.md)
 - [Web制作スキル体系](./docs/WEB_PRODUCTION_SKILLS.md)
 - [公開前チェックリスト](./docs/RELEASE_CHECKLIST.md)
 
-## 重要な安全ルール
+## 現在の事業軸
 
-- GitHub Personal Access Token、パスワード、秘密鍵をコード・Issue・README・チャットへ貼らない
-- 公開されたトークンは即時失効して再発行する
-- 未検証の状態で「修正済み」「本番確認済み」と断言しない
+- 個人事業主・小規模店舗向けの約5ページの事業ホームページ
+- 文章整理、構成、デザイン、スマホ対応、問い合わせ導線、公開まで支援
+- 月10件、3か月30件を目安とする無料モニターで信用と実績を蓄積
+- 小規模自動化、業務整理、検索・AI発見の基礎設定は補助サービス
 
-## 現在の主要機能
+## 重要な安全・品質ルール
 
-- HOME / WORK / EXPERIENCE / PROCESS / CURRENT / JOURNAL / CONTACTのカテゴリー表示
-- 日本的な斬撃オープニングとページ切り替え演出
-- PC・スマホ対応
-- Instagram DMへの問い合わせ導線
-- GitHub Issuesを利用したJOURNAL表示・管理
-
-現在の詳しい仕様、掲載可能な事実、デザイン原則、禁止事項、次の改善項目は `PAOPAO_PROJECT.md` を正とします。
+- PAT、パスワード、秘密鍵、フォームの送信先情報をコード・Issue・文書へ平文で置かない
+- 未検証の状態で「修正済み」「本番確認済み」「調査完了」と断言しない
+- 架空例を実績として見せない
+- 検索順位、売上、AIからの推薦を保証しない
+- 公開前にPC・タブレット・スマホの実画面を人間が確認する
