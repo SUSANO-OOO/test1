@@ -131,15 +131,25 @@
   const copyStatus=d.querySelector('#copyStatus');
   if(copyButton){
     copyButton.addEventListener('click',async()=>{
-      const template='【ホームページ制作の相談】\n1. 作りたいもの：\n2. 誰に見せたいか：\n3. 今困っていること：';
+      const template='【ホームページ無料制作の相談】\n1. お名前・活動名：\n2. 事業・サービス：\n3. 今困っていること：\n4. 参考URL・SNS（あれば）：';
       try{
         await navigator.clipboard.writeText(template);
-        if(copyStatus)copyStatus.textContent='相談テンプレートをコピーしました。InstagramのDMへ貼り付けてください。';
+        if(copyStatus)copyStatus.textContent='相談文のひな型をコピーしました。メールまたはInstagramへ貼り付けてください。';
       }catch{
-        if(copyStatus)copyStatus.textContent='コピーできませんでした。「作りたいもの・見せたい相手・今困っていること」の3点をDMで送ってください。';
+        if(copyStatus)copyStatus.textContent='コピーできませんでした。「活動名・事業内容・今困っていること」の3点を送ってください。';
       }
     });
   }
+
+  const contactForm=d.querySelector('.contact-form-card');
+  contactForm?.addEventListener('submit',()=>{
+    const submit=contactForm.querySelector('[type="submit"]');
+    if(submit){
+      submit.textContent='送信しています…';
+      submit.setAttribute('aria-busy','true');
+      submit.disabled=true;
+    }
+  });
 
   const navLinks=[...d.querySelectorAll('.desktop-nav a,.mobile-dock a')];
   const sectionTargets=navLinks.map(link=>d.querySelector(link.getAttribute('href'))).filter(Boolean);
