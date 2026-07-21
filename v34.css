@@ -34,8 +34,8 @@ button,input,textarea,select{font:inherit}
 .hero{padding:92px 0 84px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#f8f4ed 0%,var(--paper) 100%)}
 .hero-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(360px,.92fr);gap:74px;align-items:center}
 .eyebrow,.kicker{margin:0 0 18px;color:var(--blue);font-size:11px;font-weight:900;letter-spacing:.13em}
-.hero h1,.page-hero h1,.section-title{font-family:"Yu Mincho","Hiragino Mincho ProN",Georgia,serif;letter-spacing:-.045em}
-.hero h1{margin:0;max-width:790px;font-size:clamp(48px,6.2vw,82px);line-height:1.12}
+.hero h1,.page-hero h1,.section-title{font-family:"Yu Mincho","Hiragino Mincho ProN",Georgia,serif;letter-spacing:-.045em;text-wrap:balance;line-break:strict}
+.hero h1{margin:0;max-width:790px;font-size:clamp(48px,5.35vw,74px);line-height:1.14}
 .hero-lead{max-width:720px;margin:28px 0 0;font-size:clamp(16px,1.5vw,19px);color:#4e4a44}
 .hero-actions,.cta-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
 .button{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 23px;border-radius:999px;border:1px solid var(--ink);font-size:13px;font-weight:900;cursor:pointer}
@@ -58,8 +58,8 @@ button,input,textarea,select{font:inherit}
 .section{padding:108px 0}
 .section.alt{background:#faf7f1}
 .section.dark{background:var(--night);color:#fff}
-.section-head{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:68px;align-items:end;margin-bottom:52px}
-.section-title{margin:0;font-size:clamp(38px,4.8vw,62px);line-height:1.15}
+.section-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:end;margin-bottom:52px}
+.section-title{margin:0;font-size:clamp(36px,3.85vw,52px);line-height:1.2}
 .section-intro{margin:0;color:var(--muted);font-size:17px}
 .dark .section-intro{color:#b9c1cd}
 .cards-3,.cards-4{display:grid;gap:16px}
@@ -79,13 +79,13 @@ button,input,textarea,select{font:inherit}
 .step p{margin:0;color:var(--muted)}
 .cta-band{padding:76px 0;background:var(--blue);color:#fff}
 .cta-grid{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center}
-.cta-grid h2{margin:0;font-family:"Yu Mincho",serif;font-size:clamp(34px,4.4vw,56px);line-height:1.2}
+.cta-grid h2{margin:0;font-family:"Yu Mincho",serif;font-size:clamp(34px,4vw,52px);line-height:1.22;text-wrap:balance;line-break:strict}
 .cta-grid p{max-width:680px;margin:14px 0 0;color:#dce4ff}
 .page-hero{padding:84px 0 64px;border-bottom:1px solid var(--line);background:#f8f4ed}
-.page-hero-inner{max-width:900px}
-.page-hero h1{margin:0;font-size:clamp(46px,6vw,78px);line-height:1.13}
-.page-hero p:not(.eyebrow){max-width:760px;margin:26px 0 0;color:var(--muted);font-size:18px}
-.page-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:70px;align-items:start}
+.page-hero-inner{max-width:960px}
+.page-hero h1{margin:0;font-size:clamp(44px,5.1vw,68px);line-height:1.16}
+.page-hero p:not(.eyebrow){max-width:780px;margin:26px 0 0;color:var(--muted);font-size:18px}
+.page-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:60px;align-items:start}
 .sticky{position:sticky;top:110px}
 .page-list{display:grid;border-top:1px solid var(--line)}
 .page-list article{display:grid;grid-template-columns:70px 1fr;gap:20px;padding:28px 0;border-bottom:1px solid var(--line)}
@@ -105,7 +105,7 @@ button,input,textarea,select{font:inherit}
 .example.before .example-screen{background:#f0f0f0;color:#444}
 .example.after .example-screen{background:linear-gradient(145deg,#13203b,#1f4da9);color:#fff}
 .example-screen small{font-size:10px;font-weight:900;letter-spacing:.1em}
-.example-screen h2{margin:30px 0 14px;font-family:"Yu Mincho",serif;font-size:40px;line-height:1.25}
+.example-screen h2{margin:30px 0 14px;font-family:"Yu Mincho",serif;font-size:40px;line-height:1.25;text-wrap:balance;line-break:strict}
 .example-screen p{max-width:500px;margin:0;line-height:1.8}
 .example-screen .mini-button{display:inline-block;margin-top:26px;padding:12px 18px;border-radius:999px;background:#fff;color:#111;font-size:12px;font-weight:900}
 .compare-table{margin-top:40px;border:1px solid var(--line);border-radius:20px;overflow:hidden}
@@ -142,7 +142,7 @@ summary{padding:22px 0;cursor:pointer;font-weight:900;list-style:none}
 details p{margin:0;padding:0 0 22px;color:var(--muted)}
 .simple-page{min-height:100vh;display:grid;place-items:center;padding:40px 22px;background:var(--paper)}
 .simple-panel{width:min(760px,100%);padding:42px;border:1px solid var(--line);border-radius:28px;background:#fff;box-shadow:var(--shadow)}
-.simple-panel h1{font-family:"Yu Mincho",serif;font-size:clamp(40px,6vw,66px);line-height:1.15}
+.simple-panel h1{font-family:"Yu Mincho",serif;font-size:clamp(40px,6vw,66px);line-height:1.15;text-wrap:balance;line-break:strict}
 .simple-panel h2{margin-top:32px;font-family:"Yu Mincho",serif}
 .simple-panel p,.simple-panel li{color:var(--muted)}
 .site-footer{padding:34px 0;background:#0e131d;color:#9ca5b3}
@@ -164,7 +164,7 @@ details p{margin:0;padding:0 0 22px;color:var(--muted)}
   .main-nav{order:3;width:100%;overflow-x:auto;gap:18px;padding-bottom:2px;white-space:nowrap}
   .header-cta{font-size:10px;padding:0 13px}
   .hero{padding:64px 0 58px}
-  .hero h1{font-size:43px;line-height:1.16}
+  .hero h1{font-size:42px;line-height:1.18;text-wrap:pretty}
   .hero-lead{font-size:15px}
   .hero-actions,.cta-actions{display:grid;grid-template-columns:1fr}
   .button{width:100%}
@@ -173,12 +173,13 @@ details p{margin:0;padding:0 0 22px;color:var(--muted)}
   .map-card strong{font-size:21px}
   .map-card:nth-child(2){top:78px}.map-card:nth-child(3){top:156px}.map-card:nth-child(4){top:234px}
   .section{padding:78px 0}
+  .section-title{font-size:38px;line-height:1.22;text-wrap:pretty}
   .cards-3,.cards-4,.steps,.check-grid,.compare-layout,.condition-grid{grid-template-columns:1fr}
   .step{border-right:0;border-bottom:1px solid var(--line)}
   .step:last-child{border-bottom:0}
   .cta-grid{grid-template-columns:1fr}
   .page-hero{padding:64px 0 48px}
-  .page-hero h1{font-size:43px}
+  .page-hero h1{font-size:42px;text-wrap:pretty}
   .compare-table{overflow-x:auto}
   .compare-row{min-width:660px}
   .contact-form{grid-template-columns:1fr;padding:24px 18px}
