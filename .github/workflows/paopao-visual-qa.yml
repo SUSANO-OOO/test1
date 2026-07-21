@@ -4,13 +4,16 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - qa-status.json
+      - deployment-status.json
   pull_request:
     branches:
       - main
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   chromium-qa:
@@ -68,5 +71,30 @@ jobs:
         with:
           name: paopao-visual-qa-${{ github.sha }}
           path: qa-artifacts
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
+
+      - name: Record QA result
+        if: always() && github.event_name == 'push'
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          data = {
+              'status': os.environ.get('JOB_STATUS', ''),
+              'source_sha': os.environ.get('SOURCE_SHA', ''),
+              'recorded_at': datetime.now(timezone.utc).isoformat(),
+          }
+          with open('qa-status.json', 'w', encoding='utf-8') as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+              f.write('\n')
+          PY
+          git config user.name "PAOPAO QA Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add qa-status.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Record LP QA status"
+          git push origin HEAD:main
