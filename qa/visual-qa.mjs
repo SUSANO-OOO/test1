@@ -35,15 +35,18 @@ for(const viewport of viewports){
       title:document.title,
       h1:document.querySelector('h1')?.innerText||'',
       demoTabs:document.querySelectorAll('.demo-tab').length,
+      demoTabRects:[...document.querySelectorAll('.demo-tab')].map(tab=>tab.getBoundingClientRect().toJSON()),
       serviceRows:document.querySelectorAll('.service-row').length,
       experienceItems:document.querySelectorAll('.experience-item').length,
       processSteps:document.querySelectorAll('.process-step').length,
       contactActions:document.querySelectorAll('#contact .contact-actions>*').length,
+      copyButtonColor:getComputedStyle(document.querySelector('#copyBrief')).color,
       canvasCount:document.querySelectorAll('canvas').length,
       webgl:document.documentElement.dataset.webgl||'',
       portrait:{src:document.querySelector('.portrait-frame img')?.getAttribute('src')||'',width:document.querySelector('.portrait-frame img')?.naturalWidth||0,height:document.querySelector('.portrait-frame img')?.naturalHeight||0},
       horizontalOverflow:document.documentElement.scrollWidth>innerWidth+1,
-      mobileDock:getComputedStyle(document.querySelector('.mobile-dock')).display
+      mobileDock:getComputedStyle(document.querySelector('.mobile-dock')).display,
+      viewportWidth:innerWidth
     }));
     if(!result.initial.h1.includes('ホームページ')||!result.initial.h1.includes('最初の実績'))throw new Error(`${viewport.name}: hero promise missing`);
     if(result.initial.demoTabs!==3)throw new Error(`${viewport.name}: expected 3 demo tabs`);
@@ -51,11 +54,13 @@ for(const viewport of viewports){
     if(result.initial.experienceItems!==3)throw new Error(`${viewport.name}: expected 3 experience items`);
     if(result.initial.processSteps!==4)throw new Error(`${viewport.name}: expected 4 process steps`);
     if(result.initial.contactActions<2)throw new Error(`${viewport.name}: contact actions missing`);
+    if(result.initial.copyButtonColor==='rgb(0, 0, 0)')throw new Error(`${viewport.name}: copy button text is unreadable`);
     if(result.initial.canvasCount!==1)throw new Error(`${viewport.name}: expected one showcase canvas`);
     if(!/portrait\.webp/.test(result.initial.portrait.src)||result.initial.portrait.width<=0)throw new Error(`${viewport.name}: portrait invalid`);
     if(result.initial.horizontalOverflow)throw new Error(`${viewport.name}: horizontal overflow`);
     if(viewport.mobile&&result.initial.mobileDock==='none')throw new Error(`${viewport.name}: mobile dock hidden`);
     if(!viewport.mobile&&result.initial.mobileDock!=='none')throw new Error(`${viewport.name}: mobile dock unexpectedly visible`);
+    if(viewport.mobile&&result.initial.demoTabRects.some(rect=>rect.left<0||rect.right>result.initial.viewportWidth+1))throw new Error(`${viewport.name}: demo tabs extend outside viewport`);
 
     for(const id of sections){
       await page.locator(`#${id}`).scrollIntoViewIfNeeded();
@@ -70,9 +75,10 @@ for(const viewport of viewports){
     for(const name of ['web','automation','operations']){
       await page.locator(`.demo-tab[data-tab="${name}"]`).click();
       await page.waitForTimeout(550);
-      const tabState=await page.evaluate(target=>({selected:document.querySelector(`.demo-tab[data-tab="${target}"]`)?.getAttribute('aria-selected'),active:document.querySelector(`.demo-panel[data-panel="${target}"]`)?.classList.contains('active'),opacity:getComputedStyle(document.querySelector(`.demo-panel[data-panel="${target}"]`)).opacity}),name);
+      const tabState=await page.evaluate(target=>{const tab=document.querySelector(`.demo-tab[data-tab="${target}"]`);const panel=document.querySelector(`.demo-panel[data-panel="${target}"]`);const screen=document.querySelector('.demo-screen');const panelRect=panel.getBoundingClientRect();const screenRect=screen.getBoundingClientRect();return{selected:tab?.getAttribute('aria-selected'),active:panel?.classList.contains('active'),opacity:getComputedStyle(panel).opacity,display:getComputedStyle(panel).display,panelRect:panelRect.toJSON(),screenRect:screenRect.toJSON(),screenOverflow:getComputedStyle(screen).overflow}},name);
       result.tabs[name]=tabState;
-      if(tabState.selected!=='true'||!tabState.active||Number(tabState.opacity)<.9)throw new Error(`${viewport.name}: demo tab ${name} failed`);
+      if(tabState.selected!=='true'||!tabState.active||Number(tabState.opacity)<.9||tabState.display==='none')throw new Error(`${viewport.name}: demo tab ${name} failed`);
+      if(tabState.screenOverflow==='hidden'&&tabState.panelRect.bottom>tabState.screenRect.bottom+2)throw new Error(`${viewport.name}: demo panel ${name} is clipped`);
     }
 
     await page.locator('#contact').scrollIntoViewIfNeeded();
