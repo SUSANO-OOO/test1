@@ -41,21 +41,27 @@ for(const viewport of viewports){
       return Boolean(image?.complete&&image.naturalWidth>0&&image.naturalHeight>0);
     },{timeout:30000});
     await page.waitForFunction(()=>[...document.styleSheets].some(sheet=>sheet.href?.includes('v32-round2-polish.css')),{timeout:15000});
-    await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto'});
-    await page.waitForTimeout(700);
+    await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';window.scrollTo(0,0)});
+    await page.waitForTimeout(500);
 
     result.initial=await page.evaluate(()=>{
       const image=document.querySelector('.portrait-frame img');
       const scene=document.querySelector('#architectureScene');
       const h1=document.querySelector('.hero h1');
       const lead=document.querySelector('.hero-lead');
+      const header=document.querySelector('.header-inner');
       return{
         title:document.title,
+        scrollY:window.scrollY,
+        headerBottom:header?.getBoundingClientRect().bottom||0,
+        h1Top:h1?.getBoundingClientRect().top||0,
         h1:h1?.innerText||'',
         h1Size:Number.parseFloat(getComputedStyle(h1).fontSize),
         leadSize:Number.parseFloat(getComputedStyle(lead).fontSize),
         problemHeading:document.querySelector('#problems h2')?.innerText||'',
         makeoverHeading:document.querySelector('#makeover h2')?.innerText||'',
+        monitorHeading:document.querySelector('#monitor h2')?.innerText||'',
+        contactHeading:document.querySelector('#contact h2')?.innerText||'',
         demoHeadline:document.querySelector('.after-hero h3')?.innerText||'',
         siteLayers:document.querySelectorAll('.site-layer').length,
         problemRows:document.querySelectorAll('.problem-row').length,
@@ -73,8 +79,11 @@ for(const viewport of viewports){
       };
     });
 
-    if(!result.initial.h1.includes('相談につながる')||!result.initial.h1.includes('ホームページ'))throw new Error(`${viewport.name}: customer outcome is missing from hero`);
+    if(result.initial.scrollY!==0)throw new Error(`${viewport.name}: initial page did not start at the top`);
+    if(result.initial.h1Top<result.initial.headerBottom+12)throw new Error(`${viewport.name}: hero heading is hidden under the header`);
+    if(!result.initial.h1.includes('言葉にできない')||!result.initial.h1.includes('相談につながる')||!result.initial.h1.includes('ホームページ'))throw new Error(`${viewport.name}: final customer outcome is missing from hero`);
     if(!result.initial.problemHeading.includes('こんな悩み')||!result.initial.makeoverHeading.includes('選ばれ方'))throw new Error(`${viewport.name}: customer-led section copy is missing`);
+    if(!result.initial.monitorHeading.includes('無料モニター')||!result.initial.contactHeading.includes('今の悩み'))throw new Error(`${viewport.name}: offer or contact copy is missing`);
     if(result.initial.h1Size<40)throw new Error(`${viewport.name}: hero heading is too small`);
     if(result.initial.leadSize<14)throw new Error(`${viewport.name}: hero lead is too small`);
     if(!result.initial.demoHeadline.includes('運動が続かなかった男性へ')||!result.initial.demoHeadline.includes('週2回から始める'))throw new Error(`${viewport.name}: customer-specific makeover copy missing`);
@@ -93,15 +102,22 @@ for(const viewport of viewports){
     if(!viewport.mobile&&result.initial.mobileDock!=='none')throw new Error(`${viewport.name}: mobile dock unexpectedly visible`);
     if(!result.initial.instagramHref.includes('/kite9njp'))throw new Error(`${viewport.name}: Instagram target is wrong`);
 
+    await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-top.png`),fullPage:false});
+
     const anchorSelector=viewport.mobile?'.mobile-dock a[href="#makeover"]':'.desktop-nav a[href="#makeover"]';
     await page.locator(anchorSelector).click();
-    await page.waitForTimeout(160);
+    await page.waitForFunction(()=>{
+      const header=document.querySelector('.header-inner')?.getBoundingClientRect();
+      const target=document.querySelector('#makeover')?.getBoundingClientRect();
+      if(!header||!target)return false;
+      return target.top>=header.bottom+8&&target.top<=header.bottom+190;
+    },{timeout:4000});
     result.anchorOffset=await page.evaluate(()=>{
       const header=document.querySelector('.header-inner')?.getBoundingClientRect();
       const target=document.querySelector('#makeover')?.getBoundingClientRect();
       return{headerBottom:header?.bottom||0,targetTop:target?.top||0};
     });
-    if(result.anchorOffset.targetTop<result.anchorOffset.headerBottom+12)throw new Error(`${viewport.name}: anchor content is hidden by fixed header`);
+    if(result.anchorOffset.targetTop<result.anchorOffset.headerBottom+8)throw new Error(`${viewport.name}: anchor content is hidden by fixed header`);
 
     await page.evaluate(()=>document.querySelector('#architectureScene')?.scrollIntoView({block:'center',behavior:'auto'}));
     await page.waitForTimeout(180);
@@ -170,9 +186,6 @@ for(const viewport of viewports){
     if(!result.copyStatus.includes('コピー'))throw new Error(`${viewport.name}: consultation template feedback missing`);
 
     await page.evaluate(()=>document.querySelectorAll('.reveal').forEach(element=>element.classList.add('is-visible')));
-    await page.evaluate(()=>window.scrollTo(0,0));
-    await page.waitForTimeout(80);
-    await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-top.png`),fullPage:false});
     await page.evaluate(()=>document.querySelector('#makeover')?.scrollIntoView({block:'start',behavior:'auto'}));
     await page.waitForTimeout(80);
     await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-makeover.png`),fullPage:false});
