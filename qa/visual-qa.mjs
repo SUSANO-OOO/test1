@@ -40,6 +40,7 @@ for(const viewport of viewports){
       const image=document.querySelector('.portrait-frame img');
       return Boolean(image?.complete&&image.naturalWidth>0&&image.naturalHeight>0);
     },{timeout:30000});
+    await page.waitForFunction(()=>[...document.styleSheets].some(sheet=>sheet.href?.includes('v32-round2-polish.css')),{timeout:15000});
     await page.waitForTimeout(900);
 
     result.initial=await page.evaluate(()=>{
@@ -52,6 +53,7 @@ for(const viewport of viewports){
         h1:h1?.innerText||'',
         h1Size:Number.parseFloat(getComputedStyle(h1).fontSize),
         leadSize:Number.parseFloat(getComputedStyle(lead).fontSize),
+        demoHeadline:document.querySelector('.after-hero h3')?.innerText||'',
         siteLayers:document.querySelectorAll('.site-layer').length,
         problemRows:document.querySelectorAll('.problem-row').length,
         deliverables:document.querySelectorAll('.deliverable-map article').length,
@@ -71,6 +73,7 @@ for(const viewport of viewports){
     if(!result.initial.h1.includes('相談につながる')||!result.initial.h1.includes('ホームページ'))throw new Error(`${viewport.name}: customer outcome is missing from hero`);
     if(result.initial.h1Size<40)throw new Error(`${viewport.name}: hero heading is too small`);
     if(result.initial.leadSize<14)throw new Error(`${viewport.name}: hero lead is too small`);
+    if(!result.initial.demoHeadline.includes('運動が続かなかった男性へ')||!result.initial.demoHeadline.includes('週2回から始める'))throw new Error(`${viewport.name}: customer-specific makeover copy missing`);
     if(result.initial.siteLayers!==4)throw new Error(`${viewport.name}: expected four meaningful site layers`);
     if(result.initial.problemRows!==4)throw new Error(`${viewport.name}: expected four customer problems`);
     if(result.initial.deliverables!==4)throw new Error(`${viewport.name}: expected four deliverables`);
@@ -86,10 +89,12 @@ for(const viewport of viewports){
     if(!viewport.mobile&&result.initial.mobileDock!=='none')throw new Error(`${viewport.name}: mobile dock unexpectedly visible`);
     if(!result.initial.instagramHref.includes('/kite9njp'))throw new Error(`${viewport.name}: Instagram target is wrong`);
 
+    await page.locator('#architectureScene').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(180);
     const layerBefore=await page.locator('.layer-message').evaluate(element=>getComputedStyle(element).transform);
     const sceneBox=await page.locator('#architectureScene').boundingBox();
     if(sceneBox){
-      await page.mouse.move(sceneBox.x+sceneBox.width*.82,sceneBox.y+sceneBox.height*.24);
+      await page.mouse.move(sceneBox.x+sceneBox.width*.78,sceneBox.y+sceneBox.height*.28);
       await page.waitForTimeout(450);
       const layerAfter=await page.locator('.layer-message').evaluate(element=>getComputedStyle(element).transform);
       result.architectureInteraction={before:layerBefore,after:layerAfter,changed:layerBefore!==layerAfter};
@@ -102,12 +107,18 @@ for(const viewport of viewports){
       const state=await page.evaluate(target=>{
         const section=document.getElementById(target);
         const rect=section.getBoundingClientRect();
+        const heading=section.querySelector('h2');
         const visibleText=[...section.querySelectorAll('h2,h3,p,li,button,a')].filter(element=>{
           const style=getComputedStyle(element);const box=element.getBoundingClientRect();
           return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity)>.1&&box.width>0&&box.height>0;
         });
         const tinyText=visibleText.filter(element=>Number.parseFloat(getComputedStyle(element).fontSize)<11).map(element=>element.textContent?.trim().slice(0,70));
-        return{rect:rect.toJSON(),visibleTextCount:visibleText.length,tinyText};
+        return{
+          rect:rect.toJSON(),
+          headingRect:heading?.getBoundingClientRect().toJSON()||null,
+          visibleTextCount:visibleText.length,
+          tinyText
+        };
       },id);
       result.sections[id]=state;
       if(!state.rect.width||state.rect.height<120)throw new Error(`${viewport.name}: ${id} has no meaningful layout`);
@@ -144,12 +155,17 @@ for(const viewport of viewports){
     if(!result.copyStatus.includes('コピー'))throw new Error(`${viewport.name}: consultation template feedback missing`);
 
     await page.evaluate(()=>document.querySelectorAll('.reveal').forEach(element=>element.classList.add('is-visible')));
-    await page.locator('#top').scrollIntoViewIfNeeded();
+    await page.evaluate(()=>window.scrollTo({top:0,behavior:'auto'}));
+    await page.waitForTimeout(120);
     await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-top.png`),fullPage:false});
     await page.locator('#makeover').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(120);
     await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-makeover.png`),fullPage:false});
     await page.locator('#contact').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(120);
     await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-contact.png`),fullPage:false});
+    await page.evaluate(()=>window.scrollTo({top:0,behavior:'auto'}));
+    await page.waitForTimeout(120);
     await page.screenshot({path:path.join(outputDir,`${outputPrefix}-${viewport.name}-full.png`),fullPage:true});
 
     if(consoleErrors.length)throw new Error(`${viewport.name}: console errors: ${consoleErrors.join(' | ')}`);
