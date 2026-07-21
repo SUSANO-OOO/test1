@@ -1,0 +1,86 @@
+name: Finalize V32 source
+
+on:
+  push:
+    branches:
+      - agent/customer-first-lp-v32
+    paths:
+      - tools/finalize-v32-source.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  finalize-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/customer-first-lp-v32
+          fetch-depth: 0
+
+      - name: Move final copy and polish into source files
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          index_path = Path('index.html')
+          html = index_path.read_text(encoding='utf-8')
+
+          replacements = [
+              (
+                  '<link rel="stylesheet" href="./v32-customer-first.css?v=20260721-1">',
+                  '<link rel="stylesheet" href="./v32-customer-first.css?v=20260721-1">\n  <link rel="stylesheet" href="./v32-round2-polish.css?v=20260721-4">',
+              ),
+              (
+                  '''<h1>\n            <span>まとまっていない魅力を、</span>\n            <span class="hero-emphasis">相談につながる</span>\n            <span>ホームページに。</span>\n          </h1>''',
+                  '''<h1>\n            <span>言葉にできない</span>\n            <span>魅力を、</span>\n            <span class="hero-emphasis">相談につながる</span>\n            <span>ホームページに。</span>\n          </h1>''',
+              ),
+              ('<h2>こんな状態なら、<br>作る意味があります。</h2>', '<h2>こんな悩みが、<br>ありませんか。</h2>'),
+              ('<h2>同じサービスでも、<br>伝え方で印象は変わる。</h2>', '<h2>伝え方で、<br>選ばれ方が変わる。</h2>'),
+              ('<small>長崎 / 運動が続かなかった男性へ</small>', '<small>長崎 / 初心者向け・完全予約制</small>'),
+              ('<h3>週2回・60分から始める、<br>続けるためのパーソナルジム。</h3>', '<h3>運動が続かなかった男性へ。<br>週2回から始める<br>パーソナルジム。</h3>'),
+              ('<h2>納品するのは、<br>ページ一枚ではありません。</h2>', '<h2>納品するのは、<br>ページ一枚では<br>ありません。</h2>'),
+              (
+                  '<p>最初は「何ができる人か分からない」「技術が自己目的になっている」「経歴が顧客の利益につながっていない」という状態でした。そこで、営業でURLを送った相手が相談を検討できる順番へ組み直しました。</p>',
+                  '<p>このサイトも、営業でURLを受け取った人が「自分向けか」「何を頼めるか」「次に何をすればいいか」を順番に理解できるよう、悩み・設計・表現・検証の4段階で組み立てています。</p>',
+              ),
+              ('<h2>現場を知っているから、<br>見た目だけで終わらせません。</h2>', '<h2>現場を知っているから、<br>見た目だけで<br>終わらせません。</h2>'),
+              (
+                  '<p>制作会社での長い経歴はありません。その代わり、問い合わせ、店舗運営、PC支援の現場で「相手がどこで迷うか」「何が分からないか」を見てきました。</p>',
+                  '<p>私の強みは、制作会社の肩書きではなく、問い合わせ・店舗運営・PC支援の現場で「相手がどこで迷うか」「何が分からないか」を見てきたことです。</p>',
+              ),
+              ('<h2>最初の制作事例に、<br>協力いただける方へ。</h2>', '<h2>無料モニターを、<br>一部受付中です。</h2>'),
+              ('<h2>相談前に、<br>よく聞かれること。</h2>', '<h2>相談前の、<br>よくある質問。</h2>'),
+              ('<h2>まず、今困っていることを<br>一つだけ教えてください。</h2>', '<h2>まずは、今の悩みを<br>一つだけ、<br>教えてください。</h2>'),
+          ]
+
+          for old, new in replacements:
+              if old not in html:
+                  raise SystemExit(f'Expected source block was not found: {old[:90]}')
+              html = html.replace(old, new, 1)
+
+          index_path.write_text(html, encoding='utf-8')
+
+          js_path = Path('v32-customer-first.js')
+          js = js_path.read_text(encoding='utf-8')
+          start = js.find('  const polish=')
+          end = js.find("  root.classList.add('js');")
+          if start < 0 or end < 0 or end <= start:
+              raise SystemExit('Runtime patch block was not found')
+          js = js[:start] + js[end:]
+          js_path.write_text(js, encoding='utf-8')
+
+          Path('tools/finalize-v32-source.trigger').unlink(missing_ok=True)
+          Path('.github/workflows/finalize-v32-source.yml').unlink(missing_ok=True)
+          PY
+
+      - name: Commit finalized source
+        run: |
+          git config user.name "PAOPAO Source Finalizer"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html v32-customer-first.js v32-round2-polish.css tools/finalize-v32-source.trigger .github/workflows/finalize-v32-source.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "Move final V32 copy and styles into source"
+          git push origin HEAD:agent/customer-first-lp-v32
