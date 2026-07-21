@@ -82,11 +82,10 @@
 
 /* Human screenshot corrections: no overlap, no one-character orphan lines. */
 .hero h1,.section-heading h2,.contact-copy h2,.discovery-copy h2{word-break:normal;line-break:strict;overflow-wrap:normal;text-wrap:balance}
-.hero h1 .hero-emphasis{text-wrap:wrap!important;overflow-wrap:anywhere;line-break:anywhere}
 @media(min-width:1101px){
   .hero-grid{grid-template-columns:minmax(0,.94fr) minmax(500px,1.06fr);gap:54px}
-  .hero h1{font-size:48px;line-height:1.1;letter-spacing:-.045em}
-  .hero h1 .hero-emphasis{font-size:.88em;white-space:normal!important;text-wrap:wrap!important}
+  .hero h1{font-size:44px;line-height:1.12;letter-spacing:-.04em}
+  .hero h1 .hero-emphasis{font-size:.82em;white-space:nowrap!important;text-wrap:nowrap!important;letter-spacing:-.06em}
   .makeover .section-heading h2{font-size:48px;line-height:1.16;letter-spacing:-.04em}
   .discovery-copy h2{font-size:56px;line-height:1.12;letter-spacing:-.045em}
   .contact-copy h2{font-size:52px;line-height:1.14;letter-spacing:-.04em}
@@ -106,9 +105,9 @@
 }
 
 @media(max-width:720px){
-  .hero h1{font-size:34px!important;line-height:1.13!important;letter-spacing:-.035em!important}
-  .hero h1 span{white-space:normal!important;max-width:100%;overflow-wrap:anywhere;line-break:anywhere}
-  .hero h1 .hero-emphasis{font-size:.9em;line-height:1.22;margin-top:.32em;white-space:normal!important;overflow-wrap:anywhere;line-break:anywhere;text-wrap:wrap!important}
+  .hero h1{font-size:30px!important;line-height:1.15!important;letter-spacing:-.025em!important}
+  .hero h1 span{white-space:normal!important;max-width:100%;overflow-wrap:anywhere;line-break:anywhere;text-wrap:wrap!important}
+  .hero h1 .hero-emphasis{font-size:.8em;line-height:1.2;margin-top:.36em;white-space:nowrap!important;overflow-wrap:normal;line-break:auto;text-wrap:nowrap!important;letter-spacing:-.055em}
   .hero-lead{font-size:15px;line-height:1.8;overflow-wrap:anywhere}
   .architecture-wrap{max-width:100%;overflow:hidden}
   .architecture-heading{display:grid;grid-template-columns:1fr;gap:4px;margin-inline:0}
