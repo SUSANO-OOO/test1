@@ -18,46 +18,96 @@ for(const viewport of viewports){
   const page=await context.newPage();
   const result={...viewport};
   try{
-    await page.addInitScript(()=>{window.__LONG_TASKS__=[];try{new PerformanceObserver(list=>list.getEntries().forEach(e=>window.__LONG_TASKS__.push({start:e.startTime,duration:e.duration}))).observe({type:'longtask',buffered:true})}catch{}});
+    await page.addInitScript(()=>{
+      window.__LONG_TASKS__=[];
+      try{
+        new PerformanceObserver(list=>{
+          list.getEntries().forEach(entry=>window.__LONG_TASKS__.push({start:entry.startTime,duration:entry.duration}));
+        }).observe({type:'longtask',buffered:true});
+      }catch{}
+    });
+
     const started=Date.now();
     await page.goto(baseUrl,{waitUntil:'domcontentloaded',timeout:60000});
     await page.waitForSelector('.hero h1');
-    await page.waitForFunction(()=>['ready','fallback'].includes(document.documentElement.dataset.webgl),{timeout:30000});
-    await page.waitForFunction(()=>{const i=document.querySelector('.portrait-frame img');return i?.complete&&i.naturalWidth>0},{timeout:30000});
+    await page.waitForFunction(()=>document.documentElement.dataset.siteReady==='true',{timeout:15000});
+    await page.waitForFunction(()=>{
+      const image=document.querySelector('.portrait-frame img');
+      return Boolean(image?.complete&&image.naturalWidth>0);
+    },{timeout:30000});
     result.readyMs=Date.now()-started;
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(600);
+
     result.runtime=await page.evaluate(()=>{
       const resources=performance.getEntriesByType('resource');
-      const scripts=[...document.scripts].map(s=>s.src).filter(Boolean);
-      const styles=[...document.querySelectorAll('link[rel="stylesheet"]')].map(l=>l.href);
+      const scripts=[...document.scripts].map(script=>script.src).filter(Boolean);
+      const styles=[...document.querySelectorAll('link[rel="stylesheet"]')].map(link=>link.href);
       return{
-        scripts,styles,
-        externalScripts:scripts.filter(s=>new URL(s,location.href).origin!==location.origin),
-        duplicateScripts:scripts.filter((s,i)=>scripts.indexOf(s)!==i),
+        scripts,
+        styles,
+        externalScripts:scripts.filter(source=>new URL(source,location.href).origin!==location.origin),
+        duplicateScripts:scripts.filter((source,index)=>scripts.indexOf(source)!==index),
         resourceCount:resources.length,
-        transferBytes:resources.reduce((n,r)=>n+(r.transferSize||0),0),
-        encodedBytes:resources.reduce((n,r)=>n+(r.encodedBodySize||0),0),
+        transferBytes:resources.reduce((total,item)=>total+(item.transferSize||0),0),
+        encodedBytes:resources.reduce((total,item)=>total+(item.encodedBodySize||0),0),
         canvasCount:document.querySelectorAll('canvas').length,
-        webgl:document.documentElement.dataset.webgl||'',
+        animationCount:document.getAnimations().length,
         longTasks:window.__LONG_TASKS__||[]
-      }
+      };
     });
-    result.framePacing=await page.evaluate(()=>new Promise(resolve=>{const gaps=[];let prev=performance.now(),start=prev;function tick(now){gaps.push(now-prev);prev=now;if(now-start>1800){const sorted=[...gaps].sort((a,b)=>a-b);resolve({p95:sorted[Math.min(sorted.length-1,Math.floor(sorted.length*.95))]||0,max:Math.max(0,...gaps),count:gaps.length,estimatedFps:gaps.length/((now-start)/1000)});return}requestAnimationFrame(tick)}requestAnimationFrame(tick)}));
-    await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';document.querySelector('#showcase')?.scrollIntoView({behavior:'auto',block:'start'})});
-    await page.waitForTimeout(100);
-    result.demoSwitchMs=await page.evaluate(()=>new Promise(resolve=>{const button=document.querySelector('.demo-tab[data-tab="automation"]');const panel=document.querySelector('.demo-panel[data-panel="automation"]');const start=performance.now();button.click();const check=()=>{if(panel.classList.contains('active')&&Number(getComputedStyle(panel).opacity)>.9){resolve(performance.now()-start);return}requestAnimationFrame(check)};requestAnimationFrame(check)}));
-    if(result.readyMs>3000)throw new Error(`${viewport.name}: ready ${result.readyMs}ms`);
+
+    result.framePacing=await page.evaluate(()=>new Promise(resolve=>{
+      const gaps=[];let previous=performance.now();const start=previous;
+      const tick=now=>{
+        gaps.push(now-previous);previous=now;
+        if(now-start>=1600){
+          const sorted=[...gaps].sort((a,b)=>a-b);
+          resolve({
+            count:gaps.length,
+            p95:sorted[Math.min(sorted.length-1,Math.floor(sorted.length*.95))]||0,
+            max:Math.max(0,...gaps),
+            estimatedFps:gaps.length/((now-start)/1000)
+          });
+          return;
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }));
+
+    await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';document.querySelector('#makeover')?.scrollIntoView({behavior:'auto',block:'start'})});
+    await page.waitForTimeout(80);
+    result.makeoverSwitchMs=await page.evaluate(()=>new Promise(resolve=>{
+      const button=document.querySelector('.makeover-tab[data-view="after"]');
+      const after=document.querySelector('[data-makeover="after"]');
+      const start=performance.now();
+      button?.click();
+      const check=()=>{
+        if(after&&!after.hidden){resolve(performance.now()-start);return}
+        requestAnimationFrame(check);
+      };
+      requestAnimationFrame(check);
+    }));
+
+    if(result.readyMs>2500)throw new Error(`${viewport.name}: ready ${result.readyMs}ms`);
     if(result.runtime.externalScripts.length)throw new Error(`${viewport.name}: external scripts remain: ${result.runtime.externalScripts.join(',')}`);
     if(result.runtime.duplicateScripts.length)throw new Error(`${viewport.name}: duplicate scripts remain`);
-    if(result.runtime.canvasCount!==1)throw new Error(`${viewport.name}: expected one canvas, got ${result.runtime.canvasCount}`);
-    if(!['ready','fallback'].includes(result.runtime.webgl))throw new Error(`${viewport.name}: WebGL state missing`);
-    if(result.framePacing.p95>125)throw new Error(`${viewport.name}: frame pacing p95 ${Math.round(result.framePacing.p95)}ms`);
-    if(result.framePacing.max>260)throw new Error(`${viewport.name}: frame stall ${Math.round(result.framePacing.max)}ms`);
-    if(result.demoSwitchMs>750)throw new Error(`${viewport.name}: demo switch ${Math.round(result.demoSwitchMs)}ms`);
-    if(result.runtime.longTasks.some(t=>t.duration>350))throw new Error(`${viewport.name}: long task over 350ms`);
-  }catch(error){const failure=String(error?.stack||error);result.failure=failure;report.failures.push({viewport:viewport.name,failure})}
-  finally{report.viewports.push(result);await browser.close()}
+    if(result.runtime.canvasCount!==0)throw new Error(`${viewport.name}: unnecessary canvas remains`);
+    if(result.runtime.resourceCount>16)throw new Error(`${viewport.name}: excessive resource count ${result.runtime.resourceCount}`);
+    if(result.framePacing.p95>95)throw new Error(`${viewport.name}: frame pacing p95 ${Math.round(result.framePacing.p95)}ms`);
+    if(result.framePacing.max>220)throw new Error(`${viewport.name}: frame stall ${Math.round(result.framePacing.max)}ms`);
+    if(result.makeoverSwitchMs>350)throw new Error(`${viewport.name}: makeover switch ${Math.round(result.makeoverSwitchMs)}ms`);
+    if(result.runtime.longTasks.some(task=>task.duration>260))throw new Error(`${viewport.name}: long task over 260ms`);
+  }catch(error){
+    const failure=String(error?.stack||error);
+    result.failure=failure;
+    report.failures.push({viewport:viewport.name,failure});
+  }finally{
+    report.viewports.push(result);
+    await browser.close();
+  }
 }
+
 report.finishedAt=new Date().toISOString();
 await fs.writeFile(path.join(outputDir,'performance-report.json'),JSON.stringify(report,null,2),'utf8');
 console.log(JSON.stringify(report,null,2));
