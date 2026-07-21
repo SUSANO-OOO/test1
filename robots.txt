@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://susano-ooo.github.io/test1/sitemap.xml
