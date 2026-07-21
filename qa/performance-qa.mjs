@@ -43,11 +43,9 @@ for(const viewport of viewports){
       }
     });
     result.framePacing=await page.evaluate(()=>new Promise(resolve=>{const gaps=[];let prev=performance.now(),start=prev;function tick(now){gaps.push(now-prev);prev=now;if(now-start>1800){const sorted=[...gaps].sort((a,b)=>a-b);resolve({p95:sorted[Math.min(sorted.length-1,Math.floor(sorted.length*.95))]||0,max:Math.max(0,...gaps),count:gaps.length,estimatedFps:gaps.length/((now-start)/1000)});return}requestAnimationFrame(tick)}requestAnimationFrame(tick)}));
-    await page.evaluate(()=>document.querySelector('#showcase')?.scrollIntoView());
-    const transitionStarted=Date.now();
-    await page.locator('.demo-tab[data-tab="automation"]').click();
-    await page.waitForFunction(()=>document.querySelector('.demo-panel[data-panel="automation"]')?.classList.contains('active'));
-    result.demoSwitchMs=Date.now()-transitionStarted;
+    await page.evaluate(()=>{document.documentElement.style.scrollBehavior='auto';document.querySelector('#showcase')?.scrollIntoView({behavior:'auto',block:'start'})});
+    await page.waitForTimeout(100);
+    result.demoSwitchMs=await page.evaluate(()=>new Promise(resolve=>{const button=document.querySelector('.demo-tab[data-tab="automation"]');const panel=document.querySelector('.demo-panel[data-panel="automation"]');const start=performance.now();button.click();const check=()=>{if(panel.classList.contains('active')&&Number(getComputedStyle(panel).opacity)>.9){resolve(performance.now()-start);return}requestAnimationFrame(check)};requestAnimationFrame(check)}));
     if(result.readyMs>3000)throw new Error(`${viewport.name}: ready ${result.readyMs}ms`);
     if(result.runtime.externalScripts.length)throw new Error(`${viewport.name}: external scripts remain: ${result.runtime.externalScripts.join(',')}`);
     if(result.runtime.duplicateScripts.length)throw new Error(`${viewport.name}: duplicate scripts remain`);
@@ -55,7 +53,7 @@ for(const viewport of viewports){
     if(!['ready','fallback'].includes(result.runtime.webgl))throw new Error(`${viewport.name}: WebGL state missing`);
     if(result.framePacing.p95>125)throw new Error(`${viewport.name}: frame pacing p95 ${Math.round(result.framePacing.p95)}ms`);
     if(result.framePacing.max>260)throw new Error(`${viewport.name}: frame stall ${Math.round(result.framePacing.max)}ms`);
-    if(result.demoSwitchMs>1000)throw new Error(`${viewport.name}: demo switch ${result.demoSwitchMs}ms`);
+    if(result.demoSwitchMs>750)throw new Error(`${viewport.name}: demo switch ${Math.round(result.demoSwitchMs)}ms`);
     if(result.runtime.longTasks.some(t=>t.duration>350))throw new Error(`${viewport.name}: long task over 350ms`);
   }catch(error){const failure=String(error?.stack||error);result.failure=failure;report.failures.push({viewport:viewport.name,failure})}
   finally{report.viewports.push(result);await browser.close()}
