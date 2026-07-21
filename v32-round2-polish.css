@@ -1,0 +1,54 @@
+/* Round 2/3: human visual review corrections.
+   Keeps the customer-first structure while fixing Japanese line breaks,
+   anchor offsets, and mobile/desktop editorial rhythm. */
+
+section[id]{scroll-margin-top:132px}
+
+.hero h1,.section-heading h2,.case-zero-copy h2,.monitor-panel h2,.contact-copy h2{text-wrap:balance;line-break:strict}
+
+@media(min-width:1101px){
+  .hero-grid{grid-template-columns:minmax(0,1.08fr) minmax(460px,.92fr);gap:62px}
+  .hero h1{font-size:clamp(52px,5.5vw,80px)}
+  .hero h1 span:last-child{font-size:.86em;white-space:nowrap}
+  .hero-emphasis{font-size:.84em;white-space:nowrap;letter-spacing:-.065em}
+  .section-heading{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:78px}
+  .section-heading h2{font-size:clamp(40px,4.2vw,60px)}
+  .section-heading>p:not(.section-kicker){max-width:620px;justify-self:end}
+  .faq-grid{grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr)}
+  .faq-grid .section-heading h2{font-size:56px}
+  .after-hero{grid-template-columns:1.3fr .7fr;padding:52px 48px}
+  .after-hero h3{font-size:36px;letter-spacing:-.035em;line-height:1.22}
+  .monitor-panel h2{font-size:54px}
+  .contact-copy h2{font-size:56px}
+}
+
+@media(max-width:1100px) and (min-width:821px){
+  section[id]{scroll-margin-top:112px}
+  .section-heading h2{font-size:56px}
+  .hero h1 span:last-child{white-space:nowrap}
+  .hero-emphasis{font-size:.9em;white-space:nowrap}
+  .after-hero h3{font-size:34px}
+}
+
+@media(max-width:820px){
+  section[id]{scroll-margin-top:88px}
+  .section-heading h2{font-size:46px;line-height:1.12}
+  .after-hero h3{font-size:32px;line-height:1.25}
+}
+
+@media(max-width:560px){
+  section[id]{scroll-margin-top:78px}
+  .hero h1{font-size:42px;line-height:1.09}
+  .hero h1 span:last-child{font-size:1em;white-space:nowrap}
+  .hero-emphasis{font-size:1em;white-space:nowrap;letter-spacing:-.065em}
+  .section-kicker,.eyebrow{font-size:10px;letter-spacing:.13em}
+  .section-heading h2{font-size:37px;line-height:1.13;letter-spacing:-.035em}
+  .makeover .section-heading h2{font-size:36px}
+  .after-hero h3{font-size:29px;line-height:1.28;letter-spacing:-.03em}
+  .case-zero-copy h2{font-size:37px;line-height:1.14}
+  .about .section-heading h2{font-size:36px}
+  .process .section-heading h2{font-size:37px}
+  .monitor-panel h2{font-size:35px;line-height:1.14}
+  .faq-grid .section-heading h2{font-size:38px}
+  .contact-copy h2{font-size:35px;line-height:1.15}
+}
